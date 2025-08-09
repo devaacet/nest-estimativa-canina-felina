@@ -21,9 +21,40 @@
   <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
   [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
+# Pet Research Management System - API
+
+NestJS backend API for the Pet Research Management System, a comprehensive role-based web application for managing sophisticated pet research data collection designed for Brazilian field researchers.
+
+## Project Overview
+
+This API provides backend services for managing:
+- 8-step form wizard with conditional logic
+- Dynamic animal card management
+- Role-based access control (Pesquisador, Gerente, Administrador, Cliente)
+- Mobile-first offline capabilities
+- Advanced data export functionality
+
+## Important Development Standards
+
+⚠️ **MANDATORY**: This project follows strict language conventions. Please read the [Language Conventions](../docs/LANGUAGE_CONVENTIONS.md) document before contributing:
+
+- **Code**: All variables, functions, classes, and types must be in English
+- **User-facing content**: All API responses, error messages, and user-visible text must be in Portuguese
+- **Comments**: All code comments and documentation must be in English
+- **Database**: All table names and column names must be in English
+
+## Technical Architecture
+
+- **Framework**: NestJS with TypeScript
+- **Database**: PostgreSQL with TypeORM
+- **Authentication**: JWT with HTTP-only cookies
+- **Validation**: class-validator decorators
+- **Documentation**: Swagger/OpenAPI
+- **Export**: ExcelJS for data exports
+
 ## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+Backend API built with [Nest](https://github.com/nestjs/nest) framework TypeScript for pet research management.
 
 ## Project setup
 
