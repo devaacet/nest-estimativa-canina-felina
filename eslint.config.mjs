@@ -7,12 +7,6 @@ import unusedImports from "eslint-plugin-unused-imports"
 
 
 export default tseslint.config(
-  {
-    ignores: ['eslint.config.mjs'],
-    plugins: {
-      ['unused-imports']: unusedImports
-    },
-  },
   eslint.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
   eslintPluginPrettierRecommended,
@@ -30,6 +24,10 @@ export default tseslint.config(
     },
   },
   {
+    ignores: ['eslint.config.mjs'],
+    plugins: {
+      ['unused-imports']: unusedImports
+    },
     rules: {
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-floating-promises': 'warn',

@@ -7,10 +7,10 @@ import helmet from 'helmet';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     logger: new ConsoleLogger({
-    json: true,
-  }),
+      json: true,
+    }),
   });
-  
+
   app.enableVersioning({
     type: VersioningType.URI,
     defaultVersion: '1',
@@ -29,17 +29,19 @@ async function bootstrap() {
   });
 
   app.enableCors();
-  app.use(helmet({
-    contentSecurityPolicy: {
-      directives: {
-        defaultSrc: [`'self'`],
-        styleSrc: [`'self'`, `'unsafe-inline'`],
-        imgSrc: [`'self'`, 'data:', 'validator.swagger.io'],
-        scriptSrc: [`'self'`, `https: 'unsafe-inline'`],
+  app.use(
+    helmet({
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: [`'self'`],
+          styleSrc: [`'self'`, `'unsafe-inline'`],
+          imgSrc: [`'self'`, 'data:', 'validator.swagger.io'],
+          scriptSrc: [`'self'`, `https: 'unsafe-inline'`],
+        },
       },
-    },
-  }));
-  
+    }),
+  );
+
   await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();
