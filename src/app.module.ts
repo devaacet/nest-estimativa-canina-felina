@@ -1,18 +1,18 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { JwtModule } from '@nestjs/jwt';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { createTypeOrmConfig } from './shared/database/typeorm.config';
+import {
+  GlobalExceptionFilter,
+  ResponseInterceptor,
+  RolesGuard,
+  minsToMs,
+} from './shared';
 
 // Domain Modules
 import { AuthModule } from './apps/auth/auth.module';
-import { CityModule } from './apps/city/city.module';
-import { FormModule } from './apps/form/form.module';
-import { AnimalsModule } from './apps/animals/animals.module';
-import { AuditModule } from './apps/audit/audit.module';
 import { UserModule } from './apps/user/user.module';
 
 @Module({
@@ -26,23 +26,12 @@ import { UserModule } from './apps/user/user.module';
       inject: [ConfigService],
       useFactory: createTypeOrmConfig,
     }),
-    JwtModule.registerAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        secret: configService.get('JWT_SECRET', 'your-secret-key'),
-        signOptions: {
-          expiresIn: configService.get('JWT_ACCESS_EXPIRATION', '15m'),
-        },
-        global: true,
-      }),
-    }),
     ThrottlerModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (config: ConfigService) => [
         {
-          ttl: config.get('THROTTLE_TTL_LIMIT_IN_MS', 60000),
+          ttl: config.get<number>('THROTTLE_TTL_LIMIT_IN_MS', minsToMs(10)),
           limit: config.get('THROTTLE_REQUEST_LIMIT', 10),
         },
       ],
@@ -50,13 +39,29 @@ import { UserModule } from './apps/user/user.module';
 
     // Domain Modules
     AuthModule,
-    CityModule,
-    FormModule,
-    AnimalsModule,
-    AuditModule,
+    // CityModule,
+    // FormModule,
+    // AnimalsModule,
+    // AuditModule,
     UserModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [],
+  providers: [
+    // Global Response Interceptor
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: ResponseInterceptor,
+    },
+    // Global Exception Filter
+    {
+      provide: APP_FILTER,
+      useClass: GlobalExceptionFilter,
+    },
+    // Global Roles Guard for authentication and authorization
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
+    },
+  ],
 })
 export class AppModule {}

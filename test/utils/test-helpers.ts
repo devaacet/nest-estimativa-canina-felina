@@ -4,6 +4,7 @@
  */
 
 import { Test, TestingModule } from '@nestjs/testing';
+import { daysToMs, minsToMs } from 'src/shared';
 
 // Mock data factories
 export const mockUserData = {
@@ -59,8 +60,8 @@ export const createMockConfigService = () => ({
   get: jest.fn().mockImplementation((key: string, defaultValue?: any) => {
     const config = {
       JWT_SECRET: 'test-secret-key',
-      JWT_ACCESS_EXPIRATION: '15m',
-      JWT_REFRESH_EXPIRATION: '7d',
+      JWT_ACCESS_EXPIRATION_IN_MS: minsToMs(15).toString(),
+      JWT_REFRESH_EXPIRATION_IN_MS: daysToMs(7).toString(),
       NODE_ENV: 'test',
     };
     return config[key] || defaultValue;

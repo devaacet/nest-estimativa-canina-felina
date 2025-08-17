@@ -1,9 +1,9 @@
 // User and System Enums
 export enum UserRole {
-  PESQUISADOR = 'pesquisador',
-  GERENTE = 'gerente',
-  ADMINISTRADOR = 'administrador',
-  CLIENTE = 'cliente',
+  RESEARCHER = 'researcher',
+  MANAGER = 'manager',
+  ADMINISTRATOR = 'administrator',
+  CLIENT = 'client',
 }
 
 export enum FormStatus {

@@ -11,6 +11,6 @@ import { CityQuestionRepository } from './repositories/city-question.repository'
   imports: [TypeOrmModule.forFeature([City, CityQuestion])],
   controllers: [CityController],
   providers: [CityService, CityRepository, CityQuestionRepository],
-  exports: [CityService, CityRepository, CityQuestionRepository, TypeOrmModule],
+  exports: [CityService, CityRepository, CityQuestionRepository],
 })
 export class CityModule {}

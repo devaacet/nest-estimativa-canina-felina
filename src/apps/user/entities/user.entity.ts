@@ -10,7 +10,7 @@ import {
 } from 'typeorm';
 import { UserRole } from '../../../shared/enums';
 import { PasswordReset } from 'src/apps/auth/entities/password-reset.entity';
-import { UserCity } from './user-city.entity';
+import { City } from 'src/apps/city/entities/city.entity';
 
 @Entity('users')
 export class User {
@@ -20,8 +20,13 @@ export class User {
   @Column({ type: 'varchar', length: 255, unique: true })
   email: string;
 
-  @Column({ type: 'varchar', length: 255 })
-  password_hash: string;
+  @Column({
+    type: 'varchar',
+    length: 255,
+    select: false,
+    name: 'password_hash',
+  })
+  passwordHash: string;
 
   @Column({ type: 'varchar', length: 255 })
   name: string;
@@ -29,7 +34,7 @@ export class User {
   @Column({
     type: 'enum',
     enum: UserRole,
-    default: UserRole.PESQUISADOR,
+    default: UserRole.RESEARCHER,
   })
   role: UserRole;
 
@@ -39,30 +44,23 @@ export class User {
   @Column({ type: 'boolean', default: true })
   active: boolean;
 
-  @Column({ type: 'boolean', default: false })
-  email_verified: boolean;
+  @Column({ type: 'boolean', default: false, name: 'email_verified' })
+  emailVerified: boolean;
 
-  @Column({ type: 'timestamptz', nullable: true })
-  last_login_at: Date;
+  @Column({ nullable: true, name: 'last_login_at' })
+  lastLoginAt: Date;
 
-  @CreateDateColumn({ type: 'timestamptz' })
-  created_at: Date;
+  @CreateDateColumn({ name: 'created_at' })
+  createdAt: Date;
 
-  @UpdateDateColumn({ type: 'timestamptz' })
-  updated_at: Date;
+  @UpdateDateColumn({ name: 'updated_at' })
+  updatedAt: Date;
 
   // Relationships
   @OneToMany(() => PasswordReset, (passwordReset) => passwordReset.user)
-  password_resets: PasswordReset[];
+  passwordResets: PasswordReset[];
 
-  @OneToMany(() => UserCity, (userCity) => userCity.user)
-  user_cities: UserCity[];
-
-  @ManyToMany('City')
-  @JoinTable({
-    name: 'user_cities',
-    joinColumn: { name: 'user_id', referencedColumnName: 'id' },
-    inverseJoinColumn: { name: 'city_id', referencedColumnName: 'id' },
-  })
-  cities: any[];
+  @ManyToMany(() => City, (city) => city.users)
+  @JoinTable()
+  cities: City[];
 }

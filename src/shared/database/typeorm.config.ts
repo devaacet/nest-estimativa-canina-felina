@@ -18,8 +18,5 @@ export const createTypeOrmConfig = (
   ],
   migrations: [__dirname + '/migrations/*{.ts,.js}'],
   migrationsTableName: 'typeorm_migrations',
-  ssl:
-    configService.get('NODE_ENV') === 'production'
-      ? { rejectUnauthorized: false }
-      : false,
+  ssl: false,
 });

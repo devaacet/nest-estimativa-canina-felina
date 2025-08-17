@@ -3,6 +3,8 @@
  * This file is loaded before any test files are executed
  */
 
+import { daysToMs, minsToMs } from 'src/shared';
+
 // Global test timeout
 jest.setTimeout(30000);
 
@@ -33,8 +35,8 @@ beforeEach(() => {
   // Set test environment
   process.env.NODE_ENV = 'test';
   process.env.JWT_SECRET = 'test-jwt-secret-key';
-  process.env.JWT_ACCESS_EXPIRATION = '15m';
-  process.env.JWT_REFRESH_EXPIRATION = '7d';
+  process.env.JWT_ACCESS_EXPIRATION_IN_MS = minsToMs(15).toString();
+  process.env.JWT_REFRESH_EXPIRATION_IN_MS = daysToMs(7).toString();
 });
 
 afterEach(() => {
@@ -44,8 +46,8 @@ afterEach(() => {
   // Clean up environment variables
   delete process.env.NODE_ENV;
   delete process.env.JWT_SECRET;
-  delete process.env.JWT_ACCESS_EXPIRATION;
-  delete process.env.JWT_REFRESH_EXPIRATION;
+  delete process.env.JWT_ACCESS_EXPIRATION_IN_MS;
+  delete process.env.JWT_REFRESH_EXPIRATION_IN_MS;
 });
 
 // Custom matchers (if needed)

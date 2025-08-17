@@ -31,7 +31,7 @@ export class CityQuestion {
   created_at: Date;
 
   // Relationships
-  @ManyToOne(() => City, (city) => city.city_questions, {
+  @ManyToOne(() => City, (city) => city.cityQuestions, {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'city_id' })

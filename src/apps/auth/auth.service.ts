@@ -6,16 +6,20 @@ import {
 import { UserRepository } from '../user/repositories/user.repository';
 import { PasswordResetRepository } from './repositories/password-reset.repository';
 import { User } from '../user/entities/user.entity';
-import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { LoginResponseDto } from './dto/out/login.response.dto';
 import { LoginDto } from './dto/in';
 import {
   IAccessTokenPayload,
   IRefreshTokenPayload,
+  ITokens,
 } from './interfaces/token.interface';
 import { v6 } from 'uuid';
+import { randomSleep } from 'src/shared/utils/sleep.util';
+import {
+  comparePasswordAndHash,
+  hashPassword,
+} from 'src/shared/utils/password-hash.util';
 
 export interface AuthResult {
   user: User;
@@ -32,7 +36,13 @@ export class AuthService {
     private readonly configService: ConfigService,
   ) {}
 
-  async login(credentials: LoginDto): Promise<LoginResponseDto> {
+  async login(credentials: LoginDto): Promise<
+    {
+      user: {
+        name: string;
+      };
+    } & ITokens
+  > {
     const user = await this.validateUser(
       credentials.email,
       credentials.password,
@@ -44,14 +54,14 @@ export class AuthService {
     if (!user.active) {
       throw new UnauthorizedException('Conta desativada');
     }
-
-    // Update last login
     await this.userRepository.updateLastLogin(user.id);
 
     const tokens = this.generateTokens(user);
 
     return {
-      user,
+      user: {
+        name: user.name,
+      },
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken,
     };
@@ -63,7 +73,10 @@ export class AuthService {
       return null;
     }
 
-    const isPasswordValid = await bcrypt.compare(password, user.password_hash);
+    const isPasswordValid = await comparePasswordAndHash(
+      password,
+      user.passwordHash,
+    );
     if (!isPasswordValid) {
       return null;
     }
@@ -76,11 +89,10 @@ export class AuthService {
       sub: user.id,
       email: user.email,
       role: user.role,
+      cityIds: user.cities.map((city) => city.id),
     };
 
-    const accessToken = this.jwtService.sign(payload, {
-      expiresIn: this.configService.get('JWT_ACCESS_EXPIRATION', '15m'),
-    });
+    const accessToken = this.jwtService.sign(payload);
 
     return accessToken;
   }
@@ -91,20 +103,20 @@ export class AuthService {
     };
 
     const refreshToken = this.jwtService.sign(payload, {
-      expiresIn: this.configService.get('JWT_REFRESH_EXPIRATION', '7d'),
+      expiresIn: this.configService.get('JWT_REFRESH_EXPIRATION_IN_MS', '7d'),
     });
 
     return refreshToken;
   }
 
-  generateTokens(user: User): { accessToken: string; refreshToken: string } {
+  generateTokens(user: User): ITokens {
     return {
       accessToken: this.generateAccessToken(user),
       refreshToken: this.generateRefreshToken(user),
     };
   }
 
-  async refreshTokens(refreshToken: string): Promise<LoginResponseDto> {
+  async refreshTokens(refreshToken: string): Promise<ITokens> {
     const payload = this.jwtService.verify<IRefreshTokenPayload>(refreshToken);
     const user = await this.userRepository.findById(payload.sub);
 
@@ -114,7 +126,6 @@ export class AuthService {
 
     const tokens = this.generateTokens(user);
     return {
-      user,
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken,
     };
@@ -123,6 +134,8 @@ export class AuthService {
   async requestPasswordReset(email: string): Promise<void> {
     const user = await this.userRepository.findByEmail(email);
     if (!user) {
+      // impede enumeração de e-mails por tempo de resposta quando um e-mail não existe
+      await randomSleep(1000, 4000);
       return;
     }
 
@@ -151,10 +164,10 @@ export class AuthService {
       throw new BadRequestException('Token inválido ou expirado');
     }
 
-    const hashedPassword = await bcrypt.hash(newPassword, 12);
+    const hashedPassword = await hashPassword(newPassword);
 
     await this.userRepository.update(passwordReset.user.id, {
-      password_hash: hashedPassword,
+      passwordHash: hashedPassword,
     });
 
     await this.passwordResetRepository.delete(passwordReset.id);

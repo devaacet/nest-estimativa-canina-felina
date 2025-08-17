@@ -23,7 +23,7 @@ export class UserProfileDto {
   @ApiProperty({
     description: 'User role',
     enum: UserRole,
-    example: UserRole.PESQUISADOR,
+    example: UserRole.RESEARCHER,
   })
   role: UserRole;
 
@@ -46,28 +46,6 @@ export class UserProfileDto {
     required: false,
   })
   lastLoginAt?: Date;
-}
-
-export class RefreshResponseDto {
-  @ApiProperty({
-    description: 'Indicates if token was refreshed',
-    example: true,
-  })
-  tokenRefreshed: boolean;
-
-  @ApiProperty({
-    description: 'Token expiration timestamp',
-    example: '2024-01-01T00:15:00.000Z',
-  })
-  expiresAt: string;
-}
-
-export class LogoutResponseDto {
-  @ApiProperty({
-    description: 'Indicates if user was logged out',
-    example: true,
-  })
-  loggedOut: boolean;
 }
 
 export class ForgotPasswordResponseDto {

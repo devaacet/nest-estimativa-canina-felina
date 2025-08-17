@@ -5,30 +5,31 @@ import { ConfigService } from '@nestjs/config';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { PasswordReset } from './entities/password-reset.entity';
-import { UserRepository } from '../user/repositories/user.repository';
 import { PasswordResetRepository } from './repositories/password-reset.repository';
+import { minsToMs } from 'src/shared';
+import { JwtStrategy } from 'src/apps/auth/guards/jwt.strategy';
+import { UserModule } from 'src/apps/user/user.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([PasswordReset]),
+    UserModule,
     JwtModule.registerAsync({
       global: true,
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
-        secret: configService.get('JWT_SECRET', 'your-secret-key'),
+        secret: configService.get<string>('JWT_SECRET', 'your-secret-key'),
         signOptions: {
-          expiresIn: configService.get('JWT_ACCESS_EXPIRATION', '15m'),
+          expiresIn: configService.get<number>(
+            'JWT_ACCESS_EXPIRATION_IN_MS',
+            minsToMs(15),
+          ),
         },
       }),
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, UserRepository, PasswordResetRepository],
-  exports: [
-    AuthService,
-    UserRepository,
-    PasswordResetRepository,
-    TypeOrmModule,
-  ],
+  providers: [AuthService, JwtStrategy, PasswordResetRepository],
+  exports: [AuthService, PasswordResetRepository],
 })
 export class AuthModule {}

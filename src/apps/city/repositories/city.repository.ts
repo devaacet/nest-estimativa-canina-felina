@@ -25,6 +25,12 @@ export class CityRepository {
     });
   }
 
+  async findByUserId(userId: string): Promise<City[]> {
+    return this.cityRepository.find({
+      where: { users: { id: userId }, active: true },
+    });
+  }
+
   async findByName(name: string): Promise<City[]> {
     return this.cityRepository.find({
       where: { name, active: true },

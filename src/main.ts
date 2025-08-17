@@ -3,6 +3,7 @@ import { AppModule } from './app.module';
 import { ConsoleLogger, VersioningType } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
+import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -29,6 +30,7 @@ async function bootstrap() {
   });
 
   app.enableCors();
+  app.use(cookieParser());
   app.use(
     helmet({
       contentSecurityPolicy: {

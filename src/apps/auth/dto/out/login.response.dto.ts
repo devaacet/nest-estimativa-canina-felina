@@ -1,19 +1,17 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { User } from '../../../user/entities/user.entity';
 
-export class LoginResponseDto {
+export class LoginUserDataDto {
   @ApiProperty({
-    description: 'User information',
+    description: 'User name',
+    example: 'João Silva',
   })
-  user: User;
+  name: string;
+}
 
+export class LoginResponseDataDto {
   @ApiProperty({
-    description: 'JWT access token',
+    description: 'User information returned in login',
+    type: LoginUserDataDto,
   })
-  accessToken: string;
-
-  @ApiProperty({
-    description: 'JWT refresh token',
-  })
-  refreshToken: string;
+  user: LoginUserDataDto;
 }

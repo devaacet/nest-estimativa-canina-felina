@@ -29,20 +29,26 @@
     "test:ci": "jest --coverage --watchAll=false --ci"
   },
   "dependencies": {
+    "@nestjs/cli": "^11.0.0",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.0.1",
     "@nestjs/jwt": "^11.0.0",
+    "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/swagger": "^11.2.0",
     "@nestjs/throttler": "^6.4.0",
     "@nestjs/typeorm": "^11.0.0",
     "@types/bcryptjs": "^2.4.6",
+    "@types/cookie-parser": "^1.4.9",
+    "@types/passport-jwt": "^4.0.1",
     "@types/pg": "^8.15.5",
     "bcryptjs": "^3.0.2",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
+    "cookie-parser": "^1.4.7",
     "helmet": "^8.1.0",
+    "passport-jwt": "^4.0.1",
     "pg": "^8.16.3",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
@@ -51,7 +57,6 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
     "@eslint/js": "^9.18.0",
-    "@nestjs/cli": "^11.0.0",
     "@nestjs/schematics": "^11.0.0",
     "@nestjs/testing": "^11.0.1",
     "@types/express": "^5.0.0",
@@ -86,27 +91,25 @@
       "^.+\\.(t|j)s$": "ts-jest"
     },
     "collectCoverageFrom": [
-      "**/*.(t|j)s",
-      "!**/*.interface.ts",
-      "!**/*.enum.ts",
-      "!**/*.dto.ts",
-      "!**/main.ts",
-      "!**/*.module.ts"
-    ],
-    "coverageDirectory": "../coverage",
-    "testEnvironment": "node",
-    "setupFilesAfterEnv": ["<rootDir>/../test/setup.ts"],
-    "moduleNameMapping": {
-      "^src/(.*)$": "<rootDir>/$1"
-    },
-    "coverageReporters": ["text", "lcov", "html"],
-    "collectCoverageFrom": [
       "apps/**/*.service.ts",
       "apps/**/*.controller.ts",
       "!apps/**/*.module.ts",
       "!apps/**/*.dto.ts",
       "!apps/**/*.interface.ts",
       "!apps/**/*.enum.ts"
+    ],
+    "coverageDirectory": "../coverage",
+    "testEnvironment": "node",
+    "setupFilesAfterEnv": [
+      "<rootDir>/../test/setup.ts"
+    ],
+    "moduleNameMapping": {
+      "^src/(.*)$": "<rootDir>/$1"
+    },
+    "coverageReporters": [
+      "text",
+      "lcov",
+      "html"
     ],
     "coverageThreshold": {
       "global": {

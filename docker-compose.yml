@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  api:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=petresearch
+      - DB_PASSWORD=petresearch_secure_password
+      - DB_NAME=petresearch_db
+      - JWT_SECRET=your-super-secure-jwt-secret-change-in-production
+      - JWT_EXPIRES_IN=7d
+      - BCRYPT_ROUNDS=12
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - pet-research-network
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_USER=petresearch
+      - POSTGRES_PASSWORD=petresearch_secure_password
+      - POSTGRES_DB=petresearch_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U petresearch -d petresearch_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - pet-research-network
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  pet-research-network:
+    driver: bridge

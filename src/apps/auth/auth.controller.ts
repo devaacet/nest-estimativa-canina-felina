@@ -11,16 +11,19 @@ import { ForgotPasswordDto, LoginDto, ResetPasswordDto } from './dto/in';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import type { Response as Res } from 'express';
 import type { IRequest } from 'src/shared/interfaces/request.interface';
+import {
+  ForgotPasswordStandardResponseDto,
+  ResetPasswordStandardResponseDto,
+} from './dto/out';
+import { ApiClearsCookies, Public, StandardResponseDto } from 'src/shared';
 
 @ApiTags('Authentication')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @Public()
   @Post('login')
-  @ApiOperation({ summary: 'User login' })
-  @ApiResponse({ status: 200, description: 'Login successful' })
-  @ApiResponse({ status: 401, description: 'Invalid credentials' })
   async login(@Body() credentials: LoginDto, @Response() res: Res) {
     const result = await this.authService.login(credentials);
 
@@ -40,26 +43,12 @@ export class AuthController {
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
-    return res.status(HttpStatus.OK).json({
-      success: true,
-      data: {
-        user: {
-          id: result.user.id,
-          email: result.user.email,
-          name: result.user.name,
-          role: result.user.role,
-          active: result.user.active,
-          lastLoginAt: result.user.last_login_at,
-        },
-        permissions: this.getUserPermissions(result.user.role),
-      },
-    });
+    return {
+      user: result.user,
+    };
   }
 
   @Post('refresh')
-  @ApiOperation({ summary: 'Refresh access token' })
-  @ApiResponse({ status: 200, description: 'Token refreshed successfully' })
-  @ApiResponse({ status: 401, description: 'Invalid refresh token' })
   async refresh(@Request() req: IRequest, @Response() res: Res) {
     const refreshToken = req.cookies.refresh_token;
 
@@ -85,8 +74,16 @@ export class AuthController {
   }
 
   @Post('logout')
-  @ApiOperation({ summary: 'User logout' })
-  @ApiResponse({ status: 200, description: 'Logout successful' })
+  @ApiOperation({
+    summary: 'User logout',
+    description: 'Clears authentication cookies from the browser',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Logout successful. Authentication cookies are cleared.',
+    type: StandardResponseDto<null>,
+  })
+  @ApiClearsCookies()
   logout(@Response() res: Res) {
     // Clear cookies
     res.clearCookie('access_token');
@@ -100,9 +97,14 @@ export class AuthController {
     });
   }
 
+  @Public()
   @Post('forgot-password')
   @ApiOperation({ summary: 'Request password reset' })
-  @ApiResponse({ status: 200, description: 'Password reset email sent' })
+  @ApiResponse({
+    status: 200,
+    description: 'Password reset email sent',
+    type: ForgotPasswordStandardResponseDto,
+  })
   forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
     void this.authService.requestPasswordReset(forgotPasswordDto.email);
 
@@ -115,9 +117,14 @@ export class AuthController {
     };
   }
 
+  @Public()
   @Post('reset-password')
   @ApiOperation({ summary: 'Reset password with token' })
-  @ApiResponse({ status: 200, description: 'Password reset successfully' })
+  @ApiResponse({
+    status: 200,
+    description: 'Password reset successfully',
+    type: ResetPasswordStandardResponseDto,
+  })
   @ApiResponse({ status: 400, description: 'Invalid or expired token' })
   async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
     await this.authService.resetPassword(
@@ -131,22 +138,5 @@ export class AuthController {
         message: 'Senha redefinida com sucesso.',
       },
     };
-  }
-
-  private getUserPermissions(role: string): string[] {
-    const permissions: Record<string, string[]> = {
-      pesquisador: ['forms:create', 'forms:edit_own', 'exports:generate'],
-      gerente: [
-        'forms:create',
-        'forms:edit_own',
-        'forms:view_all',
-        'users:manage_team',
-        'exports:generate',
-      ],
-      administrador: ['*'],
-      cliente: ['forms:view_own', 'exports:generate'],
-    };
-
-    return permissions[role] || [];
   }
 }

@@ -9,6 +9,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { CityQuestion } from './city-question.entity';
+import { User } from 'src/apps/user/entities/user.entity';
 
 @Entity('cities')
 @Unique(['name', 'year'])
@@ -25,19 +26,16 @@ export class City {
   @Column({ type: 'boolean', default: true })
   active: boolean;
 
-  @CreateDateColumn({ type: 'timestamptz' })
-  created_at: Date;
+  @CreateDateColumn({ name: 'created_at' })
+  createdAt: Date;
 
-  @UpdateDateColumn({ type: 'timestamptz' })
-  updated_at: Date;
+  @UpdateDateColumn({ name: 'updated_at' })
+  updatedAt: Date;
 
   // Relationships
   @OneToMany(() => CityQuestion, (cityQuestion) => cityQuestion.city)
-  city_questions: CityQuestion[];
+  cityQuestions: CityQuestion[];
 
-  @OneToMany('UserCity', 'city')
-  user_cities: any[];
-
-  @ManyToMany('User')
-  users: any[];
+  @ManyToMany(() => User, (user) => user.cities)
+  users: User[];
 }

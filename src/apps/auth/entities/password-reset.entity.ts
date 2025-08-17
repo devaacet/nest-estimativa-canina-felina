@@ -23,7 +23,7 @@ export class PasswordReset {
   createdAt: Date;
 
   // Relationships
-  @ManyToOne(() => User, (user) => user.password_resets, {
+  @ManyToOne(() => User, (user) => user.passwordResets, {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'user_id' })
