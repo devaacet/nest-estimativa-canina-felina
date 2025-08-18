@@ -58,18 +58,16 @@ export class Form {
   @Column({ name: 'current_step', default: 1 })
   currentStep: number;
 
-  @Column({ name: 'total_animals_registered', default: 0 })
-  totalAnimalsRegistered: number;
 
   // Step 1: Initial Information
   @Column({ name: 'interviewer_name', nullable: true })
-  interviewerName: string;
+  interviewerName?: string;
 
   @Column({ name: 'interview_date', type: 'date', nullable: true })
-  interviewDate: Date;
+  interviewDate?: Date;
 
   @Column({ name: 'census_sector_code', nullable: true })
-  censusSectorCode: string;
+  censusSectorCode?: string;
 
   @Column({
     name: 'interview_status',
@@ -77,16 +75,16 @@ export class Form {
     enum: InterviewStatus,
     nullable: true,
   })
-  interviewStatus: InterviewStatus;
+  interviewStatus?: InterviewStatus;
 
   @Column({ name: 'address_street', nullable: true })
-  addressStreet: string;
+  addressStreet?: string;
 
   @Column({ name: 'address_number', nullable: true })
-  addressNumber: string;
+  addressNumber?: string;
 
   @Column({ name: 'address_complement', nullable: true })
-  addressComplement: string;
+  addressComplement?: string;
 
   @Column({
     name: 'residence_type',
@@ -94,7 +92,7 @@ export class Form {
     enum: ResidenceType,
     nullable: true,
   })
-  residenceType: ResidenceType;
+  residenceType?: ResidenceType;
 
   // Step 2: Socioeconomic Information
   @Column({
@@ -103,7 +101,7 @@ export class Form {
     enum: EducationLevel,
     nullable: true,
   })
-  educationLevel: EducationLevel;
+  educationLevel?: EducationLevel;
 
   @Column({ name: 'children_count', default: 0 })
   childrenCount: number;
@@ -123,7 +121,7 @@ export class Form {
     enum: HousingType,
     nullable: true,
   })
-  housingType: HousingType;
+  housingType?: HousingType;
 
   @Column({
     name: 'monthly_income',
@@ -131,32 +129,32 @@ export class Form {
     enum: IncomeRange,
     nullable: true,
   })
-  monthlyIncome: IncomeRange;
+  monthlyIncome?: IncomeRange;
 
   // Step 3: Animal Information
   @Column({ name: 'has_dogs_cats', nullable: true })
-  hasDogsCats: boolean;
+  hasDogsCats?: boolean;
 
   @Column({ name: 'general_animal_destiny', nullable: true })
-  generalAnimalDestiny: string;
+  generalAnimalDestiny?: string;
 
   @Column({ name: 'stray_animals_neighborhood', nullable: true })
-  strayAnimalsNeighborhood: boolean;
+  strayAnimalsNeighborhood?: boolean;
 
   @Column({ name: 'stray_animals_count', default: 0 })
   strayAnimalsCount: number;
 
   @Column({ name: 'stray_animals_species', nullable: true })
-  strayAnimalsSpecies: string;
+  strayAnimalsSpecies?: string;
 
   @Column({ name: 'stray_animals_condition', nullable: true })
-  strayAnimalsCondition: string;
+  strayAnimalsCondition?: string;
 
   @Column({ name: 'cares_street_animals', nullable: true })
-  caresStreetAnimals: boolean;
+  caresStreetAnimals?: boolean;
 
   @Column({ name: 'care_types', nullable: true })
-  careTypes: string; // JSON array
+  careTypes?: string; // JSON array
 
   @Column({
     name: 'vet_frequency',
@@ -164,7 +162,7 @@ export class Form {
     enum: VetFrequency,
     nullable: true,
   })
-  vetFrequency: VetFrequency;
+  vetFrequency?: VetFrequency;
 
   @Column({
     name: 'monthly_vet_cost',
@@ -173,20 +171,20 @@ export class Form {
     scale: 2,
     nullable: true,
   })
-  monthlyVetCost: number;
+  monthlyVetCost?: number;
 
   @Column({ name: 'community_animals', nullable: true })
-  communityAnimals: boolean;
+  communityAnimals?: boolean;
 
   // Additional metadata
   @Column({ name: 'household_data', type: 'jsonb', nullable: true })
-  householdData: any;
+  householdData?: any;
 
   @Column({ name: 'step_completion_status', type: 'jsonb', nullable: true })
-  stepCompletionStatus: any;
+  stepCompletionStatus?: any;
 
   @Column({ name: 'ui_state', type: 'jsonb', nullable: true })
-  uiState: any;
+  uiState?: any;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
@@ -195,7 +193,7 @@ export class Form {
   updatedAt: Date;
 
   @Column({ name: 'submitted_at', nullable: true })
-  submittedAt: Date;
+  submittedAt?: Date;
 
   // Relationships
   @ManyToOne(() => User)

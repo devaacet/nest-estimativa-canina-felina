@@ -128,8 +128,8 @@ export class FormController {
     return this.formService.deleteQuestionResponse(formId, questionId);
   }
 
-  @Patch(':id/update-animal-count')
-  updateAnimalCount(@Param('id', ParseUUIDPipe) formId: string) {
-    return this.formService.updateAnimalCount(formId);
+  @Get(':id/animal-count')
+  getAnimalCount(@Param('id', ParseUUIDPipe) formId: string) {
+    return this.formService.getAnimalCount(formId);
   }
 }

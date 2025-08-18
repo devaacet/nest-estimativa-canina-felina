@@ -22,7 +22,6 @@ export class FormService {
       ...createFormDto,
       status: FormStatus.DRAFT,
       currentStep: 1,
-      totalAnimalsRegistered: 0,
     });
 
     return this.formRepository.save(form);
@@ -209,7 +208,7 @@ export class FormService {
     return this.formRepository.findSubmittedByDateRange(startDate, endDate);
   }
 
-  async updateAnimalCount(formId: string): Promise<void> {
-    await this.formRepository.updateAnimalCount(formId);
+  async getAnimalCount(formId: string): Promise<number> {
+    return this.formRepository.getAnimalCount(formId);
   }
 }

@@ -99,18 +99,14 @@ export class FormRepository extends Repository<Form> {
     });
   }
 
-  async updateAnimalCount(id: string): Promise<void> {
+  async getAnimalCount(id: string): Promise<number> {
     const result = await this.createQueryBuilder()
-      .update(Form)
-      .set({
-        totalAnimalsRegistered: () => `(
-          COALESCE((SELECT COUNT(*) FROM form_current_animals WHERE form_id = :id), 0) +
-          COALESCE((SELECT COUNT(*) FROM form_previous_animals WHERE form_id = :id), 0) +
-          COALESCE((SELECT COUNT(*) FROM form_puppies_kittens WHERE form_id = :id AND had_puppies_last_12_months = true), 0)
-        )`,
-      })
-      .where('id = :id', { id })
-      .execute();
+      .select('COUNT(ca.id)', 'count')
+      .from('form_current_animals', 'ca')
+      .where('ca.form_id = :id', { id })
+      .getRawOne();
+    
+    return parseInt(result?.count || '0', 10);
   }
 
   async getFormWithAllRelations(id: string): Promise<Form | null> {
