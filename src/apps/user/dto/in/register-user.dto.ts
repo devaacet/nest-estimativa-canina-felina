@@ -1,5 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
+  ArrayMinSize,
+  IsArray,
   IsEmail,
   IsEnum,
   IsNotEmpty,
@@ -73,5 +75,7 @@ export class RegisterUserDto {
     isArray: true,
     minItems: 1,
   })
+  @IsArray({ message: 'Ids de cidade devem ser um array' })
+  @ArrayMinSize(1, { message: 'Usuário deve ter pelo menos uma cidade' })
   cityIds: string[];
 }

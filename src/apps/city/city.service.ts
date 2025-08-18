@@ -4,20 +4,46 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { CityRepository } from './repositories/city.repository';
-import { CityQuestionRepository } from './repositories/city-question.repository';
 import { City } from './entities/city.entity';
 import { CityQuestion } from './entities/city-question.entity';
+import { CurrentUserDto, PaginatedDataDto, UserRole } from 'src/shared';
+import {
+  CityDetailsResponseDto,
+  CityListBasicResponseDto,
+} from 'src/apps/city/dto/out';
+import { CreateCityDto, UpdateCityDto } from './dto/in';
 
 @Injectable()
 export class CityService {
-  constructor(
-    private readonly cityRepository: CityRepository,
-    private readonly cityQuestionRepository: CityQuestionRepository,
-  ) {}
+  constructor(private readonly cityRepository: CityRepository) {}
 
   // City methods
   async findAllCities(): Promise<City[]> {
     return this.cityRepository.findAll();
+  }
+
+  async findAllWithPagination({
+    page = 1,
+    limit = 10,
+    search,
+    year,
+    active,
+  }: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    year?: number;
+    active?: boolean;
+  }): Promise<PaginatedDataDto<City>> {
+    const { cities, total } = await this.cityRepository.findAllWithPagination({
+      page,
+      limit,
+      search,
+      year,
+      active,
+    });
+
+    return new PaginatedDataDto(cities, total, limit, page);
   }
 
   async findCityById(id: string): Promise<City> {
@@ -28,29 +54,93 @@ export class CityService {
     return city;
   }
 
-  async createCity(cityData: Partial<City>): Promise<City> {
-    // Validate year range
-    if (cityData.year && (cityData.year < 2020 || cityData.year > 2050)) {
-      throw new BadRequestException('Ano deve estar entre 2020 e 2050');
+  async getDetailsById(id: string): Promise<CityDetailsResponseDto> {
+    const city = await this.cityRepository.findById(id);
+    if (!city) {
+      throw new NotFoundException('Cidade não encontrada');
     }
-
-    return this.cityRepository.create(cityData);
+    return {
+      active: city.active,
+      createdAt: city.createdAt,
+      id: city.id,
+      name: city.name,
+      year: city.year,
+      questions: city.cityQuestions.map((question) => ({
+        id: question.id,
+        displayOrder: question.questionOrder,
+        questionText: question.questionText,
+        isRequired: question.required,
+      })),
+    };
   }
 
-  async updateCity(id: string, cityData: Partial<City>): Promise<City> {
-    const existingCity = await this.findCityById(id);
-
-    // Validate year range if provided
-    if (cityData.year && (cityData.year < 2020 || cityData.year > 2050)) {
-      throw new BadRequestException('Ano deve estar entre 2020 e 2050');
+  checkIfValidYear(year: number): void {
+    if (!year || year < new Date().getFullYear()) {
+      throw new BadRequestException('Ano não pode ser anterior ao atual');
     }
+  }
 
-    return this.cityRepository.update(id, cityData);
+  async checkIfCityNameAndYearAlreadyExists(
+    name: string,
+    year: number,
+    id?: string,
+  ): Promise<void> {
+    const existingCity = await this.cityRepository.findByNameAndYear(
+      name,
+      year,
+    );
+
+    if (existingCity && !(id && existingCity?.id)) {
+      throw new BadRequestException('Cidade com esse nome e ano já existe');
+    }
+  }
+
+  async createCity(dto: CreateCityDto): Promise<void> {
+    this.checkIfValidYear(dto.year);
+    await this.checkIfCityNameAndYearAlreadyExists(dto.name, dto.year);
+
+    await this.cityRepository.create({
+      name: dto.name,
+      year: dto.year,
+      active: dto.active ?? true,
+      cityQuestions: dto.questions.map(
+        (question) =>
+          ({
+            questionText: question.questionText,
+            questionOrder: question.questionOrder,
+            required: question.required ?? false,
+          }) as CityQuestion,
+      ),
+    } as City);
+
+    return;
+  }
+
+  async updateCity(id: string, dto: UpdateCityDto): Promise<void> {
+    this.checkIfValidYear(dto.year);
+    await this.checkIfCityNameAndYearAlreadyExists(dto.name, dto.year, id);
+
+    const city = await this.findCityById(id);
+
+    await this.cityRepository.save({
+      ...city,
+      name: dto.name,
+      year: dto.year,
+      active: dto.active ?? true,
+      cityQuestions: dto.questions.map(
+        (question) =>
+          ({
+            questionText: question.questionText,
+            questionOrder: question.questionOrder,
+            required: question.required ?? false,
+          }) as CityQuestion,
+      ),
+    });
   }
 
   async deleteCity(id: string): Promise<void> {
     const city = await this.findCityById(id);
-    await this.cityRepository.delete(id);
+    await this.cityRepository.remove(city);
   }
 
   async toggleCityStatus(id: string): Promise<City> {
@@ -62,84 +152,25 @@ export class CityService {
     return this.cityRepository.findByYear(year);
   }
 
+  async findCitiesForUser(
+    user: CurrentUserDto,
+    search?: string,
+  ): Promise<CityListBasicResponseDto[]> {
+    let cities: City[] = [];
+    if (user.role === UserRole.ADMINISTRATOR)
+      cities = await this.cityRepository.findActiveCities();
+    else cities = await this.cityRepository.findCitiesForUser(user.id, search);
+
+    return cities.map((city) => ({
+      id: city.id,
+      name: city.name,
+      year: city.year,
+    }));
+  }
+
   // City Questions methods
   async findQuestionsByCityId(cityId: string): Promise<CityQuestion[]> {
-    await this.findCityById(cityId); // Ensure city exists
-    return this.cityQuestionRepository.findByCityId(cityId);
-  }
-
-  async findRequiredQuestionsByCityId(cityId: string): Promise<CityQuestion[]> {
-    await this.findCityById(cityId); // Ensure city exists
-    return this.cityQuestionRepository.findRequiredByCityId(cityId);
-  }
-
-  async createCityQuestion(
-    cityId: string,
-    questionData: Partial<CityQuestion>,
-  ): Promise<CityQuestion> {
-    await this.findCityById(cityId); // Ensure city exists
-
-    // Get next order number
-    const questionOrder =
-      await this.cityQuestionRepository.getNextOrder(cityId);
-
-    return this.cityQuestionRepository.create({
-      ...questionData,
-      city_id: cityId,
-      question_order: questionOrder,
-    });
-  }
-
-  async updateCityQuestion(
-    questionId: string,
-    questionData: Partial<CityQuestion>,
-  ): Promise<CityQuestion> {
-    const existingQuestion =
-      await this.cityQuestionRepository.findById(questionId);
-    if (!existingQuestion) {
-      throw new NotFoundException('Pergunta não encontrada');
-    }
-
-    return this.cityQuestionRepository.update(questionId, questionData);
-  }
-
-  async deleteCityQuestion(questionId: string): Promise<void> {
-    const question = await this.cityQuestionRepository.findById(questionId);
-    if (!question) {
-      throw new NotFoundException('Pergunta não encontrada');
-    }
-
-    await this.cityQuestionRepository.delete(questionId);
-  }
-
-  async reorderCityQuestions(
-    cityId: string,
-    questionOrders: { id: string; order: number }[],
-  ): Promise<void> {
-    await this.findCityById(cityId); // Ensure city exists
-
-    // Verify all questions belong to this city
-    for (const { id: questionId } of questionOrders) {
-      const question = await this.cityQuestionRepository.findById(questionId);
-      if (!question || question.city_id !== cityId) {
-        throw new BadRequestException(
-          `Pergunta ${questionId} não pertence a esta cidade`,
-        );
-      }
-    }
-
-    await this.cityQuestionRepository.reorderQuestions(cityId, questionOrders);
-  }
-
-  async getCityWithQuestions(
-    cityId: string,
-  ): Promise<City & { questions: CityQuestion[] }> {
-    const city = await this.findCityById(cityId);
-    const questions = await this.findQuestionsByCityId(cityId);
-
-    return {
-      ...city,
-      questions,
-    };
+    const { cityQuestions } = await this.findCityById(cityId); // Ensure city exists
+    return cityQuestions;
   }
 }

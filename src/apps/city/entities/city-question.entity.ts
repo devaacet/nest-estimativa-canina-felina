@@ -5,30 +5,25 @@ import {
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
-  Unique,
 } from 'typeorm';
 import { City } from './city.entity';
 
 @Entity('city_questions')
-@Unique(['city_id', 'question_order'])
 export class CityQuestion {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'uuid' })
-  city_id: string;
+  @Column({ type: 'text', name: 'question_text' })
+  questionText: string;
 
-  @Column({ type: 'text' })
-  question_text: string;
+  @Column({ type: 'integer', name: 'question_order' })
+  questionOrder: number;
 
-  @Column({ type: 'integer' })
-  question_order: number;
-
-  @Column({ type: 'boolean', default: false })
+  @Column({ default: false })
   required: boolean;
 
-  @CreateDateColumn({ type: 'timestamptz' })
-  created_at: Date;
+  @CreateDateColumn({ name: 'created_at' })
+  createdAt: Date;
 
   // Relationships
   @ManyToOne(() => City, (city) => city.cityQuestions, {

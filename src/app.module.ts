@@ -14,6 +14,7 @@ import {
 // Domain Modules
 import { AuthModule } from './apps/auth/auth.module';
 import { UserModule } from './apps/user/user.module';
+import { CityModule } from 'src/apps/city/city.module';
 
 @Module({
   imports: [
@@ -39,7 +40,7 @@ import { UserModule } from './apps/user/user.module';
 
     // Domain Modules
     AuthModule,
-    // CityModule,
+    CityModule,
     // FormModule,
     // AnimalsModule,
     // AuditModule,

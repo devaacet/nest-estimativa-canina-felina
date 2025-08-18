@@ -19,4 +19,6 @@ export const createTypeOrmConfig = (
   migrations: [__dirname + '/migrations/*{.ts,.js}'],
   migrationsTableName: 'typeorm_migrations',
   ssl: false,
+  retryAttempts: 10,
+  retryDelay: 5000,
 });

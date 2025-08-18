@@ -32,8 +32,9 @@ export class City {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 
-  // Relationships
-  @OneToMany(() => CityQuestion, (cityQuestion) => cityQuestion.city)
+  @OneToMany(() => CityQuestion, (cityQuestion) => cityQuestion.city, {
+    cascade: ['insert', 'update', 'remove'],
+  })
   cityQuestions: CityQuestion[];
 
   @ManyToMany(() => User, (user) => user.cities)

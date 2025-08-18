@@ -1,11 +1,41 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
+  IsArray,
   IsBoolean,
   IsNotEmpty,
   IsNumber,
   IsOptional,
   IsString,
+  ValidateNested,
 } from 'class-validator';
+import { Type } from 'class-transformer';
+
+export class CreateCityQuestionDto {
+  @ApiProperty({
+    description: 'Question text',
+    example: 'Qual é a sua opinião sobre a castração de animais?',
+  })
+  @IsString({ message: 'Texto da pergunta deve ser uma string' })
+  @IsNotEmpty({ message: 'Texto da pergunta é obrigatório' })
+  questionText: string;
+
+  @ApiProperty({
+    description: 'Question order',
+    example: 1,
+  })
+  @IsNumber({}, { message: 'Ordem da pergunta deve ser um número' })
+  @IsNotEmpty({ message: 'Ordem da pergunta é obrigatória' })
+  questionOrder: number;
+
+  @ApiProperty({
+    description: 'Whether this question is required',
+    example: true,
+    required: false,
+  })
+  @IsBoolean({ message: 'Campo obrigatório deve ser booleano' })
+  @IsOptional()
+  required?: boolean;
+}
 
 export class CreateCityDto {
   @ApiProperty({
@@ -17,46 +47,12 @@ export class CreateCityDto {
   name: string;
 
   @ApiProperty({
-    description: 'State or region',
-    example: 'SP',
-  })
-  @IsString({ message: 'Estado deve ser uma string' })
-  @IsNotEmpty({ message: 'Estado é obrigatório' })
-  state: string;
-
-  @ApiProperty({
-    description: 'Country',
-    example: 'Brasil',
-  })
-  @IsString({ message: 'País deve ser uma string' })
-  @IsNotEmpty({ message: 'País é obrigatório' })
-  country: string;
-
-  @ApiProperty({
     description: 'Research year',
     example: 2024,
   })
   @IsNumber({}, { message: 'Ano deve ser um número' })
   @IsNotEmpty({ message: 'Ano é obrigatório' })
   year: number;
-
-  @ApiProperty({
-    description: 'City population',
-    example: 12000000,
-    required: false,
-  })
-  @IsNumber({}, { message: 'População deve ser um número' })
-  @IsOptional()
-  population?: number;
-
-  @ApiProperty({
-    description: 'Geographic region',
-    example: 'Sudeste',
-    required: false,
-  })
-  @IsString({ message: 'Região deve ser uma string' })
-  @IsOptional()
-  region?: string;
 
   @ApiProperty({
     description: 'City active status',
@@ -68,11 +64,12 @@ export class CreateCityDto {
   active?: boolean;
 
   @ApiProperty({
-    description: 'Additional observations about the city',
-    example: 'Major metropolitan area',
+    description: 'City questions',
+    type: [CreateCityQuestionDto],
     required: false,
   })
-  @IsString({ message: 'Observações devem ser uma string' })
-  @IsOptional()
-  observations?: string;
+  @IsArray({ message: 'Perguntas devem ser um array' })
+  @ValidateNested({ each: true })
+  @Type(() => CreateCityQuestionDto)
+  questions: CreateCityQuestionDto[];
 }

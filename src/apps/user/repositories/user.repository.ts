@@ -37,7 +37,7 @@ export class UserRepository {
       .createQueryBuilder('user')
       .addSelect('cities.name')
       .leftJoin('user.cities', 'cities')
-      .orderBy('user.created_at', 'DESC');
+      .orderBy('user.createdAt', 'DESC');
 
     // Apply filters
     if (search) {
@@ -78,6 +78,22 @@ export class UserRepository {
     return this.userRepository.findOne({
       where: { email },
       relations: ['cities'],
+    });
+  }
+
+  async findByEmailWithPasswordHash(email: string): Promise<User | null> {
+    return this.userRepository.findOne({
+      where: { email },
+      relations: ['cities'],
+      select: [
+        'id',
+        'name',
+        'role',
+        'active',
+        'email',
+        'passwordHash',
+        'cities',
+      ],
     });
   }
 

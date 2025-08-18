@@ -7,126 +7,120 @@ import {
   Post,
   Put,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { CityService } from './city.service';
-import {
-  CreateCityDto,
-  CreateCityQuestionDto,
-  ReorderQuestionsDto,
-  UpdateCityDto,
-  UpdateCityQuestionDto,
-} from './dto/in';
 import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { CreateCityDto, UpdateCityDto } from './dto/in';
+import { CurrentUser, Roles, UserRole } from 'src/shared';
+import type { CurrentUserDto, PaginatedDataDto } from 'src/shared';
+import JwtAuthGuard from 'src/apps/auth/guards/jwt-auth.guard';
+import {
+  CityDetailsResponseDto,
+  CityListBasicResponseDto,
+  CityResponseDto,
+} from 'src/apps/city/dto/out';
 
 @ApiTags('City')
 @Controller('city')
+@UseGuards(JwtAuthGuard)
 export class CityController {
   constructor(private readonly cityService: CityService) {}
 
   @Get()
-  @ApiOperation({ summary: 'Get all cities with pagination and filters' })
+  @Roles(UserRole.ADMINISTRATOR)
+  @ApiOperation({ summary: 'Listar todas as cidades' })
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiQuery({ name: 'search', required: false, type: String })
   @ApiQuery({ name: 'year', required: false, type: Number })
   @ApiQuery({ name: 'active', required: false, type: Boolean })
   @ApiResponse({ status: 200, description: 'Cities retrieved successfully' })
-  async findAllCities(
+  async findAll(
     @Query('page') page?: number,
     @Query('limit') limit?: number,
     @Query('search') search?: string,
     @Query('year') year?: number,
     @Query('active') active?: boolean,
-  ) {
-    const cities = await this.cityService.findAllCities();
+  ): Promise<PaginatedDataDto<CityResponseDto>> {
+    return await this.cityService.findAllWithPagination({
+      page,
+      limit,
+      search,
+      year,
+      active,
+    });
+  }
 
-    return {
-      success: true,
-      data: { cities },
-    };
+  @Get('basic')
+  @ApiOperation({ summary: 'Listar cidades acessíveis ao usuário atual' })
+  @ApiResponse({
+    status: 200,
+    description: 'User accessible cities retrieved successfully',
+  })
+  async findBasicCities(
+    @CurrentUser() user: CurrentUserDto,
+    @Query('search') search?: string,
+  ): Promise<CityListBasicResponseDto[]> {
+    const cities = await this.cityService.findCitiesForUser(user, search);
+
+    return cities;
   }
 
   @Get(':id')
+  @Roles(UserRole.ADMINISTRATOR)
   @ApiOperation({ summary: 'Get city by ID' })
   @ApiResponse({ status: 200, description: 'City retrieved successfully' })
   @ApiResponse({ status: 404, description: 'City not found' })
-  async findCityById(@Param('id') id: string) {
-    const city = await this.cityService.findCityById(id);
+  async findCityById(@Param('id') id: string): Promise<CityDetailsResponseDto> {
+    const city = await this.cityService.getDetailsById(id);
 
-    return {
-      success: true,
-      data: { city },
-    };
+    return city;
   }
 
   @Post()
+  @Roles(UserRole.ADMINISTRATOR)
   @ApiOperation({ summary: 'Create new city' })
   @ApiResponse({ status: 201, description: 'City created successfully' })
   @ApiResponse({ status: 400, description: 'Invalid data' })
-  async createCity(@Body() cityData: CreateCityDto) {
-    const city = await this.cityService.createCity(cityData);
-
-    return {
-      success: true,
-      data: { city },
-    };
+  async createCity(
+    @CurrentUser() user: CurrentUserDto,
+    @Body() cityData: CreateCityDto,
+  ) {
+    await this.cityService.createCity(cityData);
   }
 
   @Put(':id')
+  @Roles(UserRole.ADMINISTRATOR)
   @ApiOperation({ summary: 'Update city' })
   @ApiResponse({ status: 200, description: 'City updated successfully' })
   @ApiResponse({ status: 404, description: 'City not found' })
-  async updateCity(@Param('id') id: string, @Body() cityData: UpdateCityDto) {
-    const city = await this.cityService.updateCity(id, cityData);
-
-    return {
-      success: true,
-      data: { city },
-    };
+  async updateCity(
+    @CurrentUser() user: CurrentUserDto,
+    @Param('id') id: string,
+    @Body() cityData: UpdateCityDto,
+  ) {
+    await this.cityService.updateCity(id, cityData);
   }
 
   @Delete(':id')
+  @Roles(UserRole.ADMINISTRATOR)
   @ApiOperation({ summary: 'Delete city' })
   @ApiResponse({ status: 200, description: 'City deleted successfully' })
   @ApiResponse({ status: 404, description: 'City not found' })
-  async deleteCity(@Param('id') id: string) {
+  async deleteCity(
+    @CurrentUser() user: CurrentUserDto,
+    @Param('id') id: string,
+  ) {
     await this.cityService.deleteCity(id);
-
-    return {
-      success: true,
-      data: { message: 'Cidade excluída com sucesso' },
-    };
   }
 
   @Put(':id/toggle-status')
+  @Roles(UserRole.ADMINISTRATOR)
   @ApiOperation({ summary: 'Toggle city active status' })
   @ApiResponse({ status: 200, description: 'City status updated successfully' })
   async toggleCityStatus(@Param('id') id: string) {
-    const city = await this.cityService.toggleCityStatus(id);
-
-    return {
-      success: true,
-      data: {
-        city,
-        message: `Cidade ${city.active ? 'ativada' : 'desativada'} com sucesso`,
-      },
-    };
-  }
-
-  @Get('year/:year')
-  @ApiOperation({ summary: 'Get cities by year' })
-  @ApiQuery({ name: 'activeOnly', required: false, type: Boolean })
-  @ApiResponse({ status: 200, description: 'Cities retrieved successfully' })
-  async findCitiesByYear(
-    @Param('year') year: number,
-    @Query('activeOnly') activeOnly?: boolean,
-  ) {
-    const cities = await this.cityService.findCitiesByYear(+year);
-
-    return {
-      success: true,
-      data: { cities },
-    };
+    await this.cityService.toggleCityStatus(id);
   }
 
   // City Questions endpoints
@@ -136,108 +130,6 @@ export class CityController {
   async getCityQuestions(@Param('cityId') cityId: string) {
     const questions = await this.cityService.findQuestionsByCityId(cityId);
 
-    return {
-      success: true,
-      data: { questions },
-    };
-  }
-
-  @Get(':cityId/questions/required')
-  @ApiOperation({ summary: 'Get required questions for a city' })
-  @ApiResponse({
-    status: 200,
-    description: 'Required questions retrieved successfully',
-  })
-  async getRequiredCityQuestions(@Param('cityId') cityId: string) {
-    const questions =
-      await this.cityService.findRequiredQuestionsByCityId(cityId);
-
-    return {
-      success: true,
-      data: { questions },
-    };
-  }
-
-  @Post(':cityId/questions')
-  @ApiOperation({ summary: 'Create new question for city' })
-  @ApiResponse({ status: 201, description: 'Question created successfully' })
-  async createCityQuestion(
-    @Param('cityId') cityId: string,
-    @Body() questionData: CreateCityQuestionDto,
-  ) {
-    const question = await this.cityService.createCityQuestion(
-      cityId,
-      questionData,
-    );
-
-    return {
-      success: true,
-      data: { question },
-    };
-  }
-
-  @Put('questions/:questionId')
-  @ApiOperation({ summary: 'Update city question' })
-  @ApiResponse({ status: 200, description: 'Question updated successfully' })
-  @ApiResponse({ status: 404, description: 'Question not found' })
-  async updateCityQuestion(
-    @Param('questionId') questionId: string,
-    @Body() questionData: UpdateCityQuestionDto,
-  ) {
-    const question = await this.cityService.updateCityQuestion(
-      questionId,
-      questionData,
-    );
-
-    return {
-      success: true,
-      data: { question },
-    };
-  }
-
-  @Delete('questions/:questionId')
-  @ApiOperation({ summary: 'Delete city question' })
-  @ApiResponse({ status: 200, description: 'Question deleted successfully' })
-  async deleteCityQuestion(@Param('questionId') questionId: string) {
-    await this.cityService.deleteCityQuestion(questionId);
-
-    return {
-      success: true,
-      data: { message: 'Pergunta excluída com sucesso' },
-    };
-  }
-
-  @Put('/:cityId/questions/reorder')
-  @ApiOperation({ summary: 'Reorder city questions' })
-  @ApiResponse({ status: 200, description: 'Questions reordered successfully' })
-  async reorderCityQuestions(
-    @Param('cityId') cityId: string,
-    @Body() reorderData: ReorderQuestionsDto,
-  ) {
-    await this.cityService.reorderCityQuestions(
-      cityId,
-      reorderData.questionOrders,
-    );
-
-    return {
-      success: true,
-      data: { message: 'Perguntas reordenadas com sucesso' },
-    };
-  }
-
-  @Get('/:cityId/with-questions')
-  @ApiOperation({ summary: 'Get city with all questions' })
-  @ApiResponse({
-    status: 200,
-    description: 'City with questions retrieved successfully',
-  })
-  async getCityWithQuestions(@Param('cityId') cityId: string) {
-    const cityWithQuestions =
-      await this.cityService.getCityWithQuestions(cityId);
-
-    return {
-      success: true,
-      data: cityWithQuestions,
-    };
+    return questions;
   }
 }

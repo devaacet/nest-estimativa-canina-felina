@@ -15,12 +15,22 @@ import {
   ForgotPasswordStandardResponseDto,
   ResetPasswordStandardResponseDto,
 } from './dto/out';
-import { ApiClearsCookies, Public, StandardResponseDto } from 'src/shared';
+import {
+  ApiClearsCookies,
+  Public,
+  StandardResponseDto,
+  daysToMs,
+  minsToMs,
+} from 'src/shared';
+import { ConfigService } from '@nestjs/config';
 
 @ApiTags('Authentication')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly configService: ConfigService,
+  ) {}
 
   @Public()
   @Post('login')
@@ -31,21 +41,30 @@ export class AuthController {
     res.cookie('access_token', result.accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'none',
-      maxAge: 15 * 60 * 1000, // 15 minutes
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      maxAge: this.configService.get<number>(
+        'JWT_ACCESS_EXPIRATION_IN_MS',
+        minsToMs(15),
+      ),
     });
 
     res.cookie('refresh_token', result.refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'none',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
       path: '/auth',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      maxAge: this.configService.get<number>(
+        'JWT_REFRESH_EXPIRATION_IN_MS',
+        daysToMs(7),
+      ),
     });
 
-    return {
-      user: result.user,
-    };
+    return res.status(HttpStatus.OK).json({
+      success: true,
+      data: {
+        user: result.user,
+      },
+    });
   }
 
   @Post('refresh')

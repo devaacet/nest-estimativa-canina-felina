@@ -35,7 +35,7 @@ export class UserService {
     cityIds: string[],
     role: UserRole,
   ): void {
-    if (cityIds.length === 0)
+    if (role !== UserRole.ADMINISTRATOR && cityIds.length === 0)
       throw new BadRequestException(
         'Usuário deve ter acesso a pelo menos uma cidade',
       );
@@ -203,7 +203,16 @@ export class UserService {
   }
 
   async delete(user: CurrentUserDto, id: string): Promise<void> {
+    if (user.id === id) {
+      throw new BadRequestException(
+        'Você não pode acessar seu próprio usuário',
+      );
+    }
     await this.checkIfCurrentUserHasAccessToUser(user, id);
     await this.userRepository.delete(id);
+  }
+
+  async findOneByEmail(email: string): Promise<User | null> {
+    return this.userRepository.findByEmail(email);
   }
 }

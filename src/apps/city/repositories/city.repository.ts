@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 import { City } from '../entities/city.entity';
 
 @Injectable()
@@ -13,15 +13,64 @@ export class CityRepository {
   async findAll(): Promise<City[]> {
     return this.cityRepository.find({
       where: { active: true },
-      relations: ['city_questions'],
+      relations: ['cityQuestions'],
       order: { name: 'ASC', year: 'DESC' },
     });
+  }
+
+  async findAllWithPagination({
+    page = 1,
+    limit = 10,
+    search,
+    year,
+    active,
+  }: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    year?: number;
+    active?: boolean;
+  }): Promise<{ cities: City[]; total: number }> {
+    const queryBuilder = this.cityRepository
+      .createQueryBuilder('city')
+      .leftJoinAndSelect('city.cityQuestions', 'cityQuestions');
+
+    // Filter by active status if provided
+    if (active !== undefined) {
+      queryBuilder.andWhere('city.active = :active', { active });
+    } else {
+      // Default to active only
+      queryBuilder.andWhere('city.active = true');
+    }
+
+    // Filter by year if provided
+    if (year) {
+      queryBuilder.andWhere('city.year = :year', { year });
+    }
+
+    // Filter by search term if provided
+    if (search) {
+      queryBuilder.andWhere('LOWER(city.name) LIKE LOWER(:search)', {
+        search: `%${search}%`,
+      });
+    }
+
+    // Order by name and year
+    queryBuilder.orderBy('city.name', 'ASC').addOrderBy('city.year', 'DESC');
+
+    // Apply pagination
+    const skip = (page - 1) * limit;
+    queryBuilder.skip(skip).take(limit);
+
+    const [cities, total] = await queryBuilder.getManyAndCount();
+
+    return { cities, total };
   }
 
   async findById(id: string): Promise<City | null> {
     return this.cityRepository.findOne({
       where: { id },
-      relations: ['city_questions', 'user_cities', 'users'],
+      relations: ['cityQuestions', 'users'],
     });
   }
 
@@ -34,7 +83,7 @@ export class CityRepository {
   async findByName(name: string): Promise<City[]> {
     return this.cityRepository.find({
       where: { name, active: true },
-      relations: ['city_questions'],
+      relations: ['cityQuestions'],
       order: { year: 'DESC' },
     });
   }
@@ -42,7 +91,7 @@ export class CityRepository {
   async findByYear(year: number): Promise<City[]> {
     return this.cityRepository.find({
       where: { year, active: true },
-      relations: ['city_questions'],
+      relations: ['cityQuestions'],
       order: { name: 'ASC' },
     });
   }
@@ -50,24 +99,29 @@ export class CityRepository {
   async findByNameAndYear(name: string, year: number): Promise<City | null> {
     return this.cityRepository.findOne({
       where: { name, year, active: true },
-      relations: ['city_questions'],
+      relations: ['cityQuestions'],
     });
   }
 
-  async findActiveCities(): Promise<City[]> {
+  async findActiveCities(search?: string): Promise<City[]> {
     return this.cityRepository.find({
-      where: { active: true },
-      relations: ['city_questions'],
+      select: ['year', 'name', 'id'],
+      where: { active: true, name: ILike(`%${search}%`) },
       order: { name: 'ASC', year: 'DESC' },
     });
   }
 
-  async findCitiesForUser(userId: string): Promise<City[]> {
-    return this.cityRepository
+  async findCitiesForUser(userId: string, search?: string): Promise<City[]> {
+    const qb = this.cityRepository
       .createQueryBuilder('city')
-      .innerJoin('city.user_cities', 'uc')
-      .where('uc.user_id = :userId', { userId })
-      .andWhere('city.active = true')
+      .select(['year', 'name', 'id'])
+      .innerJoin('city.users', 'users')
+      .where('users.id = :userId', { userId })
+      .andWhere('city.active = true');
+
+    if (search) qb.andWhere('name ILIKE :search', { search: `%${search}%` });
+
+    return qb
       .orderBy('city.name', 'ASC')
       .addOrderBy('city.year', 'DESC')
       .getMany();
@@ -76,14 +130,18 @@ export class CityRepository {
   async findCitiesWithQuestions(): Promise<City[]> {
     return this.cityRepository.find({
       where: { active: true },
-      relations: ['city_questions'],
+      relations: ['cityQuestions'],
       order: { name: 'ASC', year: 'DESC' },
     });
   }
 
-  async create(cityData: Partial<City>): Promise<City> {
+  async create(cityData: City): Promise<City> {
     const city = this.cityRepository.create(cityData);
     return this.cityRepository.save(city);
+  }
+
+  async save(dto: City): Promise<void> {
+    await this.cityRepository.save(dto);
   }
 
   async update(id: string, cityData: Partial<City>): Promise<City> {
@@ -93,6 +151,10 @@ export class CityRepository {
       throw new Error('City not found after update');
     }
     return updated;
+  }
+
+  async remove(city: City): Promise<void> {
+    await this.cityRepository.remove(city);
   }
 
   async delete(id: string): Promise<void> {
@@ -117,7 +179,7 @@ export class CityRepository {
       .select('DISTINCT city.year', 'year')
       .where('city.active = true')
       .orderBy('city.year', 'DESC')
-      .getRawMany();
+      .getRawMany<{ year: number }>();
 
     return years.map((item) => item.year);
   }
