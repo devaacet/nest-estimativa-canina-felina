@@ -15,6 +15,7 @@ import {
 import { AuthModule } from './apps/auth/auth.module';
 import { UserModule } from './apps/user/user.module';
 import { CityModule } from 'src/apps/city/city.module';
+import { AppController } from './app.controller';
 
 @Module({
   imports: [
@@ -46,7 +47,7 @@ import { CityModule } from 'src/apps/city/city.module';
     // AuditModule,
     UserModule,
   ],
-  controllers: [],
+  controllers: [AppController],
   providers: [
     // Global Response Interceptor
     {
