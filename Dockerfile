@@ -23,13 +23,13 @@ RUN npm prune --production && \
     rm -rf src test *.md *.json tsconfig*.json && \
     rm -rf node_modules/@types
 
-# Create non-root user
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nestjs -u 1001
+# # Create non-root user
+# RUN addgroup -g 1001 -S nodejs && \
+#     adduser -S nestjs -u 1001
 
-# Change ownership to non-root user
-RUN chown -R nestjs:nodejs /app
-USER nestjs
+# # Change ownership to non-root user
+# RUN chown -R nestjs:nodejs /app
+# USER nestjs
 
 # Expose port
 EXPOSE 3000

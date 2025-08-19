@@ -12,6 +12,9 @@ async function bootstrap() {
     }),
   });
 
+  // Global prefix for all routes
+  app.setGlobalPrefix('api');
+
   app.enableVersioning({
     type: VersioningType.URI,
     defaultVersion: '1',
@@ -25,8 +28,8 @@ async function bootstrap() {
     .setVersion('0.1.0')
     .build();
   const documentFactory = () => SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('docs', app, documentFactory, {
-    jsonDocumentUrl: '/docs/json',
+  SwaggerModule.setup('api/docs', app, documentFactory, {
+    jsonDocumentUrl: '/api/docs/json',
   });
 
   app.enableCors();
@@ -48,4 +51,4 @@ async function bootstrap() {
 
   await app.listen(process.env.PORT ?? 3000);
 }
-bootstrap();
+void bootstrap();
