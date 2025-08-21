@@ -32,10 +32,48 @@ async function bootstrap() {
     jsonDocumentUrl: '/api/docs/json',
   });
 
+  // CORS configuration - allow development and production origins
   app.enableCors({
-    origin: ['http://localhost:5173/'],
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    credentials: true
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+      
+      // Define allowed origins
+      const allowedOrigins = [
+        'http://localhost:5173',          // Local dev (no trailing slash)
+        'http://localhost:3000',          // Alternative local dev
+        'http://localhost:4173',          // Vite preview mode
+        'https://localhost:5173',         // HTTPS local
+        // VPS domain for production/development
+        'https://srv964791.hstgr.cloud',
+        'http://srv964791.hstgr.cloud',
+      ];
+      
+      // Check if origin is allowed
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      
+      // Log rejected origins for debugging
+      console.warn(`🚫 CORS blocked origin: ${origin}`);
+      return callback(new Error('Not allowed by CORS'), false);
+    },
+    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization', 
+      'Accept',
+      'Origin',
+      'X-Requested-With',
+      'DNT',
+      'User-Agent',
+      'If-Modified-Since',
+      'Cache-Control',
+      'Range'
+    ],
+    exposedHeaders: ['Content-Length', 'Content-Range'],
+    credentials: true,
+    maxAge: 86400, // 24 hours cache for preflight
   });
   app.use(cookieParser());
   app.use(
