@@ -32,7 +32,10 @@ async function bootstrap() {
     jsonDocumentUrl: '/api/docs/json',
   });
 
-  app.enableCors();
+  app.enableCors({
+    origin: '*',
+    methods: 'GET,PUT,PATCH,POST,DELETE,OPTIONS',
+  });
   app.use(cookieParser());
   app.use(
     helmet({
