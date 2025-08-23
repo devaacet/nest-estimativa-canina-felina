@@ -52,7 +52,6 @@ export class AuthController {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-      path: '/auth',
       maxAge: this.configService.get<number>(
         'JWT_REFRESH_EXPIRATION_IN_MS',
         daysToMs(7),

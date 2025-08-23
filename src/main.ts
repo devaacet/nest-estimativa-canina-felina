@@ -37,23 +37,23 @@ async function bootstrap() {
     origin: (origin, callback) => {
       // Allow requests with no origin (like mobile apps or curl requests)
       if (!origin) return callback(null, true);
-      
+
       // Define allowed origins
       const allowedOrigins = [
-        'http://localhost:5173',          // Local dev (no trailing slash)
-        'http://localhost:3000',          // Alternative local dev
-        'http://localhost:4173',          // Vite preview mode
-        'https://localhost:5173',         // HTTPS local
+        'http://localhost:5173', // Local dev (no trailing slash)
+        'http://localhost:3000', // Alternative local dev
+        'http://localhost:4173', // Vite preview mode
+        'https://localhost:5173', // HTTPS local
         // VPS domain for production/development
         'https://srv964791.hstgr.cloud',
         'http://srv964791.hstgr.cloud',
       ];
-      
+
       // Check if origin is allowed
       if (allowedOrigins.includes(origin)) {
         return callback(null, true);
       }
-      
+
       // Log rejected origins for debugging
       console.warn(`🚫 CORS blocked origin: ${origin}`);
       return callback(new Error('Not allowed by CORS'), false);
@@ -61,7 +61,7 @@ async function bootstrap() {
     methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
     allowedHeaders: [
       'Content-Type',
-      'Authorization', 
+      'Authorization',
       'Accept',
       'Origin',
       'X-Requested-With',
@@ -69,7 +69,7 @@ async function bootstrap() {
       'User-Agent',
       'If-Modified-Since',
       'Cache-Control',
-      'Range'
+      'Range',
     ],
     exposedHeaders: ['Content-Length', 'Content-Range'],
     credentials: true,
