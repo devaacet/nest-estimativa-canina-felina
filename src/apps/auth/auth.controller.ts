@@ -77,17 +77,33 @@ export class AuthController {
       });
     }
 
-    const tokens = await this.authService.refreshTokens(refreshToken);
+    const result = await this.authService.refreshTokens(refreshToken);
 
-    res.cookie('access_token', tokens.accessToken, {
+    res.cookie('access_token', result.accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'none',
-      maxAge: 15 * 60 * 1000, // 15 minutes
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      maxAge: this.configService.get<number>(
+        'JWT_ACCESS_EXPIRATION_IN_MS',
+        minsToMs(15),
+      ),
+    });
+
+    res.cookie('refresh_token', result.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      maxAge: this.configService.get<number>(
+        'JWT_REFRESH_EXPIRATION_IN_MS',
+        daysToMs(7),
+      ),
     });
 
     return res.status(HttpStatus.OK).json({
       success: true,
+      data: {
+        user: result.user,
+      },
     });
   }
 
