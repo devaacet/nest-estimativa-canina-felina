@@ -106,7 +106,7 @@ export class CityRepository {
   async findActiveCities(search?: string): Promise<City[]> {
     return this.cityRepository.find({
       select: ['year', 'name', 'id'],
-      where: { active: true, name: ILike(`%${search}%`) },
+      where: { active: true, name: search ? ILike(`%${search}%`) : undefined },
       order: { name: 'ASC', year: 'DESC' },
     });
   }
