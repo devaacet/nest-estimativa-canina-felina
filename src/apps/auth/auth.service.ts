@@ -43,7 +43,6 @@ export class AuthService {
         name: string;
         email: string;
         role: string;
-        cityIds: string[];
       };
     } & ITokens
   > {
@@ -68,7 +67,6 @@ export class AuthService {
         name: user.name,
         email: user.email,
         role: user.role,
-        cityIds: user.cityIds,
       },
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken,
@@ -124,15 +122,16 @@ export class AuthService {
     };
   }
 
-  async refreshTokens(refreshToken: string): Promise<{
-    user: {
-      id: string;
-      name: string;
-      email: string;
-      role: string;
-      cityIds: string[];
-    };
-  } & ITokens> {
+  async refreshTokens(refreshToken: string): Promise<
+    {
+      user: {
+        id: string;
+        name: string;
+        email: string;
+        role: string;
+      };
+    } & ITokens
+  > {
     const payload = this.jwtService.verify<IRefreshTokenPayload>(refreshToken);
     const user = await this.userRepository.findById(payload.sub);
 
@@ -147,7 +146,6 @@ export class AuthService {
         name: user.name,
         email: user.email,
         role: user.role,
-        cityIds: user.cityIds,
       },
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken,
