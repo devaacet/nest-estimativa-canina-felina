@@ -12,6 +12,8 @@ import {
 } from '@nestjs/common';
 import { FormService } from './forms.service';
 import { CreateFormDto, CreateFormResponseDto, UpdateFormDto } from './dto';
+import { CurrentUser } from '../../shared';
+import type { CurrentUserDto } from '../../shared';
 
 @Controller('form')
 export class FormController {
@@ -131,5 +133,21 @@ export class FormController {
   @Get(':id/animal-count')
   getAnimalCount(@Param('id', ParseUUIDPipe) formId: string) {
     return this.formService.getAnimalCount(formId);
+  }
+
+  @Get('dashboard')
+  getDashboard(
+    @CurrentUser() user: CurrentUserDto,
+    @Query('cityIds') cityIds?: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    const cityIdsArray = cityIds ? cityIds.split(',') : undefined;
+    const dateRange = startDate && endDate ? {
+      startDate: new Date(startDate),
+      endDate: new Date(endDate),
+    } : undefined;
+    
+    return this.formService.getDashboardData(user, cityIdsArray, dateRange);
   }
 }

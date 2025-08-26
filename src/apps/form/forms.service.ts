@@ -9,12 +9,15 @@ import { Form } from './entities/form.entity';
 import { FormQuestionResponse } from './entities/form-question-response.entity';
 import { CreateFormDto, CreateFormResponseDto, UpdateFormDto } from './dto';
 import { FormStatus } from '../../shared/enums';
+import { CurrentUserDto, UserRole } from '../../shared';
+import { CityService } from '../city/city.service';
 
 @Injectable()
 export class FormService {
   constructor(
     private readonly formRepository: FormRepository,
     private readonly formQuestionResponseRepository: FormQuestionResponseRepository,
+    private readonly cityService: CityService,
   ) {}
 
   async create(createFormDto: CreateFormDto): Promise<Form> {
@@ -210,5 +213,79 @@ export class FormService {
 
   async getAnimalCount(formId: string): Promise<number> {
     return this.formRepository.getAnimalCount(formId);
+  }
+
+  async getDashboardData(
+    user: CurrentUserDto,
+    cityIds?: string[],
+    dateRange?: { startDate: Date; endDate: Date },
+  ): Promise<{
+    totalInterviews: number;
+    completedForms: number;
+    activeCities: number;
+    totalAnimals: number;
+    chart: {
+      completedFormsTimeline: Array<{
+        date: string;
+        completedForms: number;
+      }>;
+    };
+  }> {
+    // Determinar período padrão se não fornecido (últimos 30 dias)
+    const endDate = dateRange?.endDate || new Date();
+    const startDate = dateRange?.startDate || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    
+    // Buscar cidades que o usuário tem acesso
+    let userCityIds: string[] = [];
+    
+    if (user.role === UserRole.ADMINISTRATOR) {
+      userCityIds = cityIds ?? [];
+    } else {
+      // Para usuários não-admin, sempre validar acesso
+      const userAccessibleCities = await this.cityService.findCitiesForUser(user);
+      const userAccessibleCityIds = userAccessibleCities.map(city => city.id);
+      
+      if (cityIds && cityIds.length > 0) {
+        // Filtrar apenas as cidades que o usuário tem acesso
+        userCityIds = cityIds.filter(cityId => userAccessibleCityIds.includes(cityId));
+        
+        // Se nenhuma cidade válida foi fornecida, usar todas as cidades do usuário
+        if (userCityIds.length === 0) {
+          userCityIds = userAccessibleCityIds;
+        }
+      } else {
+        // Se não foi fornecido cityIds, usar todas as cidades que o usuário tem acesso
+        userCityIds = userAccessibleCityIds;
+      }
+    }
+    
+    // Calcular diferença para agrupamento
+    const daysDiff = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+    const weeksDiff = Math.ceil(daysDiff / 7);
+    
+    let groupBy: 'day' | 'week' | 'month' = 'day';
+    if (daysDiff > 14) groupBy = 'week';
+    if (weeksDiff > 5) groupBy = 'month';
+
+    // Buscar dados do repositório
+    const kpisData = await this.formRepository.getKpisData(userCityIds, { startDate, endDate });
+    const timelineData = await this.formRepository.getCompletedFormsTimeline(
+      userCityIds,
+      { startDate, endDate },
+      groupBy
+    );
+
+    // Contar cidades ativas (que têm formulários no período)
+    const activeCities = await this.formRepository.getActiveCitiesCount(userCityIds, { startDate, endDate });
+
+    return {
+      totalInterviews: kpisData.totalForms,
+      completedForms: kpisData.completedForms,
+      activeCities: activeCities,
+      totalAnimals: kpisData.totalAnimalsRegistered,
+      chart: {
+        completedFormsTimeline: timelineData,
+      },
+    };
   }
 }
