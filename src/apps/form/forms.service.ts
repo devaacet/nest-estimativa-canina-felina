@@ -7,9 +7,14 @@ import { FormRepository } from './repositories/form.repository';
 import { FormQuestionResponseRepository } from './repositories/form-question-response.repository';
 import { Form } from './entities/form.entity';
 import { FormQuestionResponse } from './entities/form-question-response.entity';
-import { CreateFormDto, CreateFormResponseDto, UpdateFormDto } from './dto';
+import {
+  CreateFormDto,
+  CreateFormResponseDto,
+  FormListResponseDto,
+  UpdateFormDto,
+} from './dto';
 import { FormStatus } from '../../shared/enums';
-import { CurrentUserDto, UserRole } from '../../shared';
+import { CurrentUserDto, PaginatedDataDto, UserRole } from '../../shared';
 import { CityService } from '../city/city.service';
 
 @Injectable()
@@ -137,7 +142,7 @@ export class FormService {
     formId: string,
     createResponseDto: CreateFormResponseDto,
   ): Promise<FormQuestionResponse> {
-    const form = await this.findOne(formId);
+    await this.findOne(formId);
 
     return this.formQuestionResponseRepository.upsertResponse(
       formId,
@@ -233,22 +238,26 @@ export class FormService {
   }> {
     // Determinar período padrão se não fornecido (últimos 30 dias)
     const endDate = dateRange?.endDate || new Date();
-    const startDate = dateRange?.startDate || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-    
+    const startDate =
+      dateRange?.startDate || new Date(Date.now() - 700 * 24 * 60 * 60 * 1000);
+
     // Buscar cidades que o usuário tem acesso
     let userCityIds: string[] = [];
-    
+
     if (user.role === UserRole.ADMINISTRATOR) {
       userCityIds = cityIds ?? [];
     } else {
       // Para usuários não-admin, sempre validar acesso
-      const userAccessibleCities = await this.cityService.findCitiesForUser(user);
-      const userAccessibleCityIds = userAccessibleCities.map(city => city.id);
-      
+      const userAccessibleCities =
+        await this.cityService.findCitiesForUser(user);
+      const userAccessibleCityIds = userAccessibleCities.map((city) => city.id);
+
       if (cityIds && cityIds.length > 0) {
         // Filtrar apenas as cidades que o usuário tem acesso
-        userCityIds = cityIds.filter(cityId => userAccessibleCityIds.includes(cityId));
-        
+        userCityIds = cityIds.filter((cityId) =>
+          userAccessibleCityIds.includes(cityId),
+        );
+
         // Se nenhuma cidade válida foi fornecida, usar todas as cidades do usuário
         if (userCityIds.length === 0) {
           userCityIds = userAccessibleCityIds;
@@ -258,25 +267,33 @@ export class FormService {
         userCityIds = userAccessibleCityIds;
       }
     }
-    
+
     // Calcular diferença para agrupamento
-    const daysDiff = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+    const daysDiff = Math.ceil(
+      (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24),
+    );
     const weeksDiff = Math.ceil(daysDiff / 7);
-    
+
     let groupBy: 'day' | 'week' | 'month' = 'day';
     if (daysDiff > 14) groupBy = 'week';
-    if (weeksDiff > 5) groupBy = 'month';
+    if (weeksDiff > 8) groupBy = 'month';
 
     // Buscar dados do repositório
-    const kpisData = await this.formRepository.getKpisData(userCityIds, { startDate, endDate });
+    const kpisData = await this.formRepository.getKpisData(userCityIds, {
+      startDate,
+      endDate,
+    });
     const timelineData = await this.formRepository.getCompletedFormsTimeline(
       userCityIds,
       { startDate, endDate },
-      groupBy
+      groupBy,
     );
 
     // Contar cidades ativas (que têm formulários no período)
-    const activeCities = await this.formRepository.getActiveCitiesCount(userCityIds, { startDate, endDate });
+    const activeCities = await this.formRepository.getActiveCitiesCount(
+      userCityIds,
+      { startDate, endDate },
+    );
 
     return {
       totalInterviews: kpisData.totalForms,
@@ -287,5 +304,70 @@ export class FormService {
         completedFormsTimeline: timelineData,
       },
     };
+  }
+
+  private transformToListResponse(this: void, form: Form): FormListResponseDto {
+    const progress = (form.currentStep / 8) * 100;
+
+    return {
+      id: form.id,
+      status: form.status,
+      progress: Math.round(progress * 100) / 100, // Round to 2 decimal places
+      interviewerName: form.interviewerName || form.user.name,
+      interviewDate: form.interviewDate.toString(),
+      censusSectorCode: form.censusSectorCode,
+      cityName: form.city.name,
+      address: form.addressStreet,
+      number: form.addressNumber,
+      createdAt: form.createdAt,
+      updatedAt: form.updatedAt,
+    };
+  }
+
+  async findAllWithPagination({
+    user,
+    page = 1,
+    limit = 10,
+    cityIds,
+    dateRange,
+  }: {
+    user: CurrentUserDto;
+    page?: number;
+    limit?: number;
+    cityIds?: string[];
+    dateRange?: { startDate: Date; endDate: Date };
+  }): Promise<PaginatedDataDto<FormListResponseDto>> {
+    let accessibleCityIds: string[] = [];
+
+    if (user.role === UserRole.ADMINISTRATOR) {
+      accessibleCityIds = cityIds || [];
+    } else {
+      const userCities = await this.cityService.findCitiesForUser(user);
+      accessibleCityIds = userCities.map((city) => city.id);
+
+      // If cityIds filter is provided, intersect with user's accessible cities
+      if (cityIds && cityIds.length > 0) {
+        accessibleCityIds = cityIds.filter((cityId) =>
+          accessibleCityIds.includes(cityId),
+        );
+      }
+    }
+
+    // Get paginated forms from repository
+    const { forms, total } = await this.formRepository.findAllWithPagination({
+      page,
+      limit,
+      cityIds: accessibleCityIds,
+      userId: user.role === UserRole.RESEARCHER ? user.id : undefined,
+      dateRange,
+    });
+
+    // Transform forms to list response DTOs
+    return new PaginatedDataDto(
+      forms.map(this.transformToListResponse),
+      total,
+      limit,
+      page,
+    );
   }
 }

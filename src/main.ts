@@ -2,16 +2,14 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ConsoleLogger, VersioningType } from '@nestjs/common';
+import { VersioningType } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
-    logger: new ConsoleLogger({
-      json: true,
-    }),
+    logger: ['verbose'],
   });
 
   // Global prefix for all routes

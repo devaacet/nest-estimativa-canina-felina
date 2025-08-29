@@ -31,12 +31,6 @@ export class Form {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ name: 'user_id' })
-  userId: string;
-
-  @Column({ name: 'city_id' })
-  cityId: string;
-
   @Column({ name: 'form_date', type: 'date' })
   formDate: Date;
 
@@ -58,30 +52,33 @@ export class Form {
   @Column({ name: 'current_step', default: 1 })
   currentStep: number;
 
-
   // Step 1: Initial Information
-  @Column({ name: 'interviewer_name', nullable: true })
-  interviewerName?: string;
+  @Column({ name: 'interviewer_name' })
+  interviewerName: string;
 
-  @Column({ name: 'interview_date', type: 'date', nullable: true })
-  interviewDate?: Date;
+  @Column({
+    name: 'interview_date',
+    type: 'date',
+    default: () => 'CURRENT_DATE',
+  })
+  interviewDate: string;
 
-  @Column({ name: 'census_sector_code', nullable: true })
-  censusSectorCode?: string;
+  @Column({ name: 'census_sector_code' })
+  censusSectorCode: string;
 
   @Column({
     name: 'interview_status',
     type: 'enum',
     enum: InterviewStatus,
-    nullable: true,
+    default: InterviewStatus.ATTENDED,
   })
-  interviewStatus?: InterviewStatus;
+  interviewStatus: InterviewStatus;
 
-  @Column({ name: 'address_street', nullable: true })
-  addressStreet?: string;
+  @Column({ name: 'address_street' })
+  addressStreet: string;
 
-  @Column({ name: 'address_number', nullable: true })
-  addressNumber?: string;
+  @Column({ name: 'address_number' })
+  addressNumber: string;
 
   @Column({ name: 'address_complement', nullable: true })
   addressComplement?: string;
@@ -90,9 +87,9 @@ export class Form {
     name: 'residence_type',
     type: 'enum',
     enum: ResidenceType,
-    nullable: true,
+    default: ResidenceType.HOUSE,
   })
-  residenceType?: ResidenceType;
+  residenceType: ResidenceType;
 
   // Step 2: Socioeconomic Information
   @Column({
@@ -196,7 +193,7 @@ export class Form {
   submittedAt?: Date;
 
   // Relationships
-  @ManyToOne(() => User)
+  @ManyToOne(() => User, (user) => user.forms)
   @JoinColumn({ name: 'user_id' })
   user: User;
 

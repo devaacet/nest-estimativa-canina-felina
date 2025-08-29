@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { DataSource, Repository } from 'typeorm';
 import { Form } from '../entities/form.entity';
-import { FormStatus } from '../../../shared/enums';
+import { CastrationStatus, FormStatus } from '../../../shared/enums';
 
 @Injectable()
 export class FormRepository extends Repository<Form> {
@@ -11,7 +11,7 @@ export class FormRepository extends Repository<Form> {
 
   async findByUserId(userId: string): Promise<Form[]> {
     return this.find({
-      where: { userId },
+      where: { user: { id: userId } },
       relations: [
         'user',
         'city',
@@ -27,7 +27,7 @@ export class FormRepository extends Repository<Form> {
 
   async findByCityId(cityId: string): Promise<Form[]> {
     return this.find({
-      where: { cityId },
+      where: { city: { id: cityId } },
       relations: [
         'user',
         'city',
@@ -43,7 +43,7 @@ export class FormRepository extends Repository<Form> {
 
   async findByUserAndCity(userId: string, cityId: string): Promise<Form[]> {
     return this.find({
-      where: { userId, cityId },
+      where: { user: { id: userId }, city: { id: cityId } },
       relations: [
         'user',
         'city',
@@ -59,7 +59,7 @@ export class FormRepository extends Repository<Form> {
 
   async findDraftsByUser(userId: string): Promise<Form[]> {
     return this.find({
-      where: { userId, status: FormStatus.DRAFT },
+      where: { user: { id: userId }, status: FormStatus.DRAFT },
       relations: ['user', 'city'],
       order: { updatedAt: 'DESC' },
     });
@@ -73,11 +73,11 @@ export class FormRepository extends Repository<Form> {
       .leftJoinAndSelect('form.user', 'user')
       .leftJoinAndSelect('form.city', 'city')
       .where('form.status = :status', { status: 'submitted' })
-      .andWhere('form.formDate BETWEEN :startDate AND :endDate', {
+      .andWhere('form.form_date BETWEEN :startDate AND :endDate', {
         startDate,
         endDate,
       })
-      .orderBy('form.formDate', 'DESC')
+      .orderBy('form.form_date', 'DESC')
       .getMany();
   }
 
@@ -104,8 +104,8 @@ export class FormRepository extends Repository<Form> {
       .select('COUNT(ca.id)', 'count')
       .from('form_current_animals', 'ca')
       .where('ca.form_id = :id', { id })
-      .getRawOne();
-    
+      .getRawOne<{ count: string }>();
+
     return parseInt(result?.count || '0', 10);
   }
 
@@ -132,7 +132,6 @@ export class FormRepository extends Repository<Form> {
     totalForms: number;
     completedForms: number;
     submittedForms: number;
-    averageCompletionTime: string;
     totalAnimalsRegistered: number;
     householdsWithPets: number;
     castratedAnimals: number;
@@ -144,17 +143,20 @@ export class FormRepository extends Repository<Form> {
       .leftJoin('form.puppiesKittens', 'pk');
 
     if (cityIds && cityIds.length > 0) {
-      query = query.where('form.cityId IN (:...cityIds)', { cityIds });
+      query = query.where('form.city_id IN (:...cityIds)', { cityIds });
     }
 
     if (dateRange) {
       if (cityIds && cityIds.length > 0) {
-        query = query.andWhere('form.formDate BETWEEN :startDate AND :endDate', {
-          startDate: dateRange.startDate,
-          endDate: dateRange.endDate,
-        });
+        query = query.andWhere(
+          'form.form_date BETWEEN :startDate AND :endDate',
+          {
+            startDate: dateRange.startDate,
+            endDate: dateRange.endDate,
+          },
+        );
       } else {
-        query = query.where('form.formDate BETWEEN :startDate AND :endDate', {
+        query = query.where('form.form_date BETWEEN :startDate AND :endDate', {
           startDate: dateRange.startDate,
           endDate: dateRange.endDate,
         });
@@ -165,17 +167,25 @@ export class FormRepository extends Repository<Form> {
 
     // Calcular KPIs
     const totalForms = forms.length;
-    const completedForms = forms.filter(f => f.status === FormStatus.COMPLETED || f.status === FormStatus.SUBMITTED).length;
-    const submittedForms = forms.filter(f => f.status === FormStatus.SUBMITTED).length;
-    
-    // Calcular tempo médio de conclusão (placeholder - precisa implementar no banco)
-    const averageCompletionTime = "45.3 minutes";
+    const completedForms = forms.filter(
+      (f) =>
+        f.status === FormStatus.COMPLETED || f.status === FormStatus.SUBMITTED,
+    ).length;
+    const submittedForms = forms.filter(
+      (f) => f.status === FormStatus.SUBMITTED,
+    ).length;
 
     // Contagem de animais
     const formsWithAnimals = await this.createQueryBuilder('form')
       .leftJoinAndSelect('form.currentAnimals', 'ca')
-      .where(cityIds && cityIds.length > 0 ? 'form.cityId IN (:...cityIds)' : '1=1', { cityIds })
-      .andWhere(dateRange ? 'form.formDate BETWEEN :startDate AND :endDate' : '1=1', dateRange)
+      .where(
+        cityIds && cityIds.length > 0 ? 'form.cityId IN (:...cityIds)' : '1=1',
+        { cityIds },
+      )
+      .andWhere(
+        dateRange ? 'form.form_date BETWEEN :startDate AND :endDate' : '1=1',
+        dateRange,
+      )
       .getMany();
 
     let totalAnimalsRegistered = 0;
@@ -183,16 +193,16 @@ export class FormRepository extends Repository<Form> {
     let castratedAnimals = 0;
     let vaccinatedAnimals = 0;
 
-    formsWithAnimals.forEach(form => {
+    formsWithAnimals.forEach((form) => {
       if (form.currentAnimals && form.currentAnimals.length > 0) {
         householdsWithPets++;
         totalAnimalsRegistered += form.currentAnimals.length;
-        
-        form.currentAnimals.forEach(animal => {
-          if (animal.castration_status === 'yes' || animal.castration_status === 'yes_less_than_year') {
+
+        form.currentAnimals.forEach((animal) => {
+          if (animal.castration_status !== CastrationStatus.NO) {
             castratedAnimals++;
           }
-          if (animal.is_vaccinated === true) {
+          if (animal.is_vaccinated) {
             vaccinatedAnimals++;
           }
         });
@@ -203,7 +213,6 @@ export class FormRepository extends Repository<Form> {
       totalForms,
       completedForms,
       submittedForms,
-      averageCompletionTime,
       totalAnimalsRegistered,
       householdsWithPets,
       castratedAnimals,
@@ -216,36 +225,27 @@ export class FormRepository extends Repository<Form> {
     dateRange?: { startDate: Date; endDate: Date },
     groupBy: 'day' | 'week' | 'month' = 'day',
   ): Promise<Array<{ date: string; completedForms: number }>> {
-    let dateFormat = 'YYYY-MM-DD';
-    let dateGrouping = 'DATE(form.formDate)';
-    
-    switch (groupBy) {
-      case 'week':
-        dateFormat = 'YYYY-WW';
-        dateGrouping = "DATE_FORMAT(form.formDate, '%Y-%u')";
-        break;
-      case 'month':
-        dateFormat = 'YYYY-MM';
-        dateGrouping = "DATE_FORMAT(form.formDate, '%Y-%m')";
-        break;
-      default:
-        dateFormat = 'YYYY-MM-DD';
-        dateGrouping = 'DATE(form.formDate)';
-    }
+    const dateGroupings = {
+      week: "TO_CHAR(form.form_date, 'IYYY-IW')",
+      month: "TO_CHAR(form.form_date, 'YYYY-MM')",
+      day: "TO_CHAR(form.form_date, 'YYYY-MM-DD')",
+    };
+
+    const dateGrouping = dateGroupings[groupBy];
 
     let query = this.createQueryBuilder('form')
       .select(dateGrouping, 'date')
       .addSelect('COUNT(form.id)', 'completedForms')
-      .where('form.status IN (:...statuses)', { 
-        statuses: [FormStatus.COMPLETED, FormStatus.SUBMITTED] 
+      .where('form.status IN (:...statuses)', {
+        statuses: [FormStatus.COMPLETED, FormStatus.SUBMITTED],
       });
 
     if (cityIds && cityIds.length > 0) {
-      query = query.andWhere('form.cityId IN (:...cityIds)', { cityIds });
+      query = query.andWhere('form.city_id IN (:...cityIds)', { cityIds });
     }
 
     if (dateRange) {
-      query = query.andWhere('form.formDate BETWEEN :startDate AND :endDate', {
+      query = query.andWhere('form.form_date BETWEEN :startDate AND :endDate', {
         startDate: dateRange.startDate,
         endDate: dateRange.endDate,
       });
@@ -254,9 +254,9 @@ export class FormRepository extends Repository<Form> {
     const results = await query
       .groupBy('date')
       .orderBy('date', 'ASC')
-      .getRawMany();
+      .getRawMany<{ completedForms: string; date: string }>();
 
-    return results.map(result => ({
+    return results.map((result) => ({
       date: result.date,
       completedForms: parseInt(result.completedForms, 10),
     }));
@@ -266,21 +266,26 @@ export class FormRepository extends Repository<Form> {
     cityIds?: string[],
     dateRange?: { startDate: Date; endDate: Date },
   ): Promise<number> {
-    let query = this.createQueryBuilder('form')
-      .select('DISTINCT form.cityId', 'cityId');
+    let query = this.createQueryBuilder('form').select(
+      'DISTINCT form.city_id',
+      'cityId',
+    );
 
     if (cityIds && cityIds.length > 0) {
-      query = query.where('form.cityId IN (:...cityIds)', { cityIds });
+      query = query.where('form.city_id IN (:...cityIds)', { cityIds });
     }
 
     if (dateRange) {
       if (cityIds && cityIds.length > 0) {
-        query = query.andWhere('form.formDate BETWEEN :startDate AND :endDate', {
-          startDate: dateRange.startDate,
-          endDate: dateRange.endDate,
-        });
+        query = query.andWhere(
+          'form.form_date BETWEEN :startDate AND :endDate',
+          {
+            startDate: dateRange.startDate,
+            endDate: dateRange.endDate,
+          },
+        );
       } else {
-        query = query.where('form.formDate BETWEEN :startDate AND :endDate', {
+        query = query.where('form.form_date BETWEEN :startDate AND :endDate', {
           startDate: dateRange.startDate,
           endDate: dateRange.endDate,
         });
@@ -289,5 +294,54 @@ export class FormRepository extends Repository<Form> {
 
     const results = await query.getRawMany();
     return results.length;
+  }
+
+  async findAllWithPagination({
+    page = 1,
+    limit = 10,
+    cityIds,
+    userId,
+    dateRange,
+  }: {
+    page?: number;
+    limit?: number;
+    cityIds?: string[];
+    userId?: string;
+    dateRange?: { startDate: Date; endDate: Date };
+  }): Promise<{ forms: Form[]; total: number }> {
+    let query = this.createQueryBuilder('form')
+      .leftJoinAndSelect('form.user', 'user')
+      .leftJoinAndSelect('form.city', 'city');
+
+    // Apply role-based filtering
+    if (userId) {
+      // Researchers only see forms created by them
+      query = query.where('form.userId = :userId', { userId });
+    }
+
+    if (cityIds && cityIds.length > 0) {
+      // Managers and clients only see forms from their accessible cities
+      query = query.andWhere('form.cityId IN (:...cityIds)', { cityIds });
+    }
+
+    // Apply date range filter
+    if (dateRange) {
+      query = query.andWhere('form.form_date BETWEEN :startDate AND :endDate', {
+        startDate: dateRange.startDate,
+        endDate: dateRange.endDate,
+      });
+    }
+
+    // Count total items
+    const total = await query.getCount();
+
+    // Apply pagination and get results
+    const forms = await query
+      .orderBy('form.createdAt', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getMany();
+
+    return { forms, total };
   }
 }

@@ -11,6 +11,7 @@ import {
 import { UserRole } from '../../../shared/enums';
 import { PasswordReset } from 'src/apps/auth/entities/password-reset.entity';
 import { City } from 'src/apps/city/entities/city.entity';
+import { Form } from 'src/apps/form/entities/form.entity';
 
 @Entity('users')
 export class User {
@@ -63,4 +64,7 @@ export class User {
   @ManyToMany(() => City, (city) => city.users)
   @JoinTable()
   cities: City[];
+
+  @OneToMany(() => Form, (form) => form.user)
+  forms: Form[];
 }

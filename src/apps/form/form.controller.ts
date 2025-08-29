@@ -9,13 +9,23 @@ import {
   Patch,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
+import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { FormService } from './forms.service';
-import { CreateFormDto, CreateFormResponseDto, UpdateFormDto } from './dto';
+import {
+  CreateFormDto,
+  CreateFormResponseDto,
+  FormListResponseDto,
+  UpdateFormDto,
+} from './dto';
 import { CurrentUser } from '../../shared';
-import type { CurrentUserDto } from '../../shared';
+import type { CurrentUserDto, PaginatedDataDto } from '../../shared';
+import JwtAuthGuard from '../auth/guards/jwt-auth.guard';
 
+@ApiTags('Form')
 @Controller('form')
+@UseGuards(JwtAuthGuard)
 export class FormController {
   constructor(private readonly formService: FormService) {}
 
@@ -25,17 +35,65 @@ export class FormController {
   }
 
   @Get()
-  findAll(@Query('userId') userId?: string, @Query('cityId') cityId?: string) {
-    if (userId && cityId) {
-      return this.formService.findByUserAndCity(userId, cityId);
-    }
-    if (userId) {
-      return this.formService.findByUser(userId);
-    }
-    if (cityId) {
-      return this.formService.findByCity(cityId);
-    }
-    return this.formService.findAll();
+  @ApiOperation({
+    summary: 'List forms with pagination and role-based access control',
+  })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    type: Number,
+    description: 'Page number (default: 1)',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Items per page (default: 10)',
+  })
+  @ApiQuery({
+    name: 'cityIds',
+    required: false,
+    type: String,
+    description:
+      'Comma-separated city IDs to filter (intersected with user accessible cities)',
+  })
+  @ApiQuery({
+    name: 'startDate',
+    required: false,
+    type: String,
+    description: 'Start date for filtering forms (YYYY-MM-DD format)',
+  })
+  @ApiQuery({
+    name: 'endDate',
+    required: false,
+    type: String,
+    description: 'End date for filtering forms (YYYY-MM-DD format)',
+  })
+  @ApiResponse({ status: 200, description: 'Forms retrieved successfully' })
+  async findAll(
+    @CurrentUser() user: CurrentUserDto,
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+    @Query('cityIds') cityIds?: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ): Promise<PaginatedDataDto<FormListResponseDto>> {
+    const cityIdsArray = cityIds
+      ? cityIds.split(',').filter((id) => id.trim())
+      : undefined;
+
+    const dateRange =
+      startDate && endDate
+        ? { startDate: new Date(startDate), endDate: new Date(endDate) }
+        : undefined;
+
+    return await this.formService.findAllWithPagination({
+      user,
+      page,
+      limit,
+      cityIds: cityIdsArray,
+      dateRange,
+    });
   }
 
   @Get('drafts')
@@ -52,6 +110,44 @@ export class FormController {
       new Date(startDate),
       new Date(endDate),
     );
+  }
+
+  @ApiQuery({
+    name: 'cityIds',
+    required: false,
+    type: String,
+    description:
+      'Comma-separated city IDs to filter (intersected with user accessible cities)',
+  })
+  @ApiQuery({
+    name: 'startDate',
+    required: false,
+    type: String,
+    description: 'Start date for filtering forms (YYYY-MM-DD format)',
+  })
+  @ApiQuery({
+    name: 'endDate',
+    required: false,
+    type: String,
+    description: 'End date for filtering forms (YYYY-MM-DD format)',
+  })
+  @Get('dashboard')
+  getDashboard(
+    @CurrentUser() user: CurrentUserDto,
+    @Query('cityIds') cityIds?: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    const cityIdsArray = cityIds ? cityIds.split(',') : undefined;
+    const dateRange =
+      startDate && endDate
+        ? {
+            startDate: new Date(startDate),
+            endDate: new Date(endDate),
+          }
+        : undefined;
+
+    return this.formService.getDashboardData(user, cityIdsArray, dateRange);
   }
 
   @Get(':id')
@@ -133,21 +229,5 @@ export class FormController {
   @Get(':id/animal-count')
   getAnimalCount(@Param('id', ParseUUIDPipe) formId: string) {
     return this.formService.getAnimalCount(formId);
-  }
-
-  @Get('dashboard')
-  getDashboard(
-    @CurrentUser() user: CurrentUserDto,
-    @Query('cityIds') cityIds?: string,
-    @Query('startDate') startDate?: string,
-    @Query('endDate') endDate?: string,
-  ) {
-    const cityIdsArray = cityIds ? cityIds.split(',') : undefined;
-    const dateRange = startDate && endDate ? {
-      startDate: new Date(startDate),
-      endDate: new Date(endDate),
-    } : undefined;
-    
-    return this.formService.getDashboardData(user, cityIdsArray, dateRange);
   }
 }

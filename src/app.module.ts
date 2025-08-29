@@ -16,6 +16,7 @@ import { AuthModule } from './apps/auth/auth.module';
 import { UserModule } from './apps/user/user.module';
 import { CityModule } from 'src/apps/city/city.module';
 import { AppController } from './app.controller';
+import { FormModule } from 'src/apps/form/form.module';
 
 @Module({
   imports: [
@@ -42,7 +43,7 @@ import { AppController } from './app.controller';
     // Domain Modules
     AuthModule,
     CityModule,
-    // FormModule,
+    FormModule,
     // AnimalsModule,
     // AuditModule,
     UserModule,

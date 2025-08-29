@@ -1,16 +1,20 @@
 import {
-  ExceptionFilter,
-  Catch,
   ArgumentsHost,
+  Catch,
+  ExceptionFilter,
   HttpException,
   HttpStatus,
   Logger,
 } from '@nestjs/common';
-import { Response, Request } from 'express';
+import { Request, Response } from 'express';
 import { ValidationError } from 'class-validator';
 import { QueryFailedError } from 'typeorm';
 import { ResponseBuilder } from '../utils';
-import { ErrorResponseDto, ValidationErrorResponseDto, ValidationFieldErrorDto } from '../dto';
+import {
+  ErrorResponseDto,
+  ValidationErrorResponseDto,
+  ValidationFieldErrorDto,
+} from '../dto';
 
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
@@ -38,7 +42,10 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       errorResponse = this.handleDatabaseException(exception, metadata);
       httpStatus = HttpStatus.BAD_REQUEST;
     } else if (this.isValidationError(exception)) {
-      errorResponse = this.handleValidationException(exception as any, metadata);
+      errorResponse = this.handleValidationException(
+        exception as any,
+        metadata,
+      );
       httpStatus = HttpStatus.BAD_REQUEST;
     } else {
       errorResponse = this.handleGenericException(exception, metadata);
@@ -70,13 +77,17 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       'message' in exceptionResponse &&
       Array.isArray((exceptionResponse as any).message)
     ) {
-      return this.handleNestJSValidationError(exceptionResponse as any, metadata);
+      return this.handleNestJSValidationError(
+        exceptionResponse as any,
+        metadata,
+      );
     }
 
     // Handle regular HTTP exceptions
-    const message = typeof exceptionResponse === 'string' 
-      ? exceptionResponse 
-      : (exceptionResponse as any)?.message || exception.message;
+    const message =
+      typeof exceptionResponse === 'string'
+        ? exceptionResponse
+        : (exceptionResponse as any)?.message || exception.message;
 
     const errorCode = this.getErrorCodeFromStatus(status);
 
@@ -109,14 +120,16 @@ export class GlobalExceptionFilter implements ExceptionFilter {
           });
         } else if (typeof error === 'object' && error.property) {
           // Class-validator error object
-          const constraints = error.constraints ? Object.keys(error.constraints) : [];
-          const message = error.constraints 
+          const constraints = error.constraints
+            ? Object.keys(error.constraints)
+            : [];
+          const message = error.constraints
             ? Object.values(error.constraints).join(', ')
             : 'Validation failed';
 
           validationErrors.push({
             field: error.property,
-            message: message as string,
+            message: message,
             value: error.value,
             constraints,
           });
@@ -124,7 +137,11 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       }
     }
 
-    return ResponseBuilder.validationError(validationErrors, ['Validation failed'], metadata);
+    return ResponseBuilder.validationError(
+      validationErrors,
+      ['Validation failed'],
+      metadata,
+    );
   }
 
   /**
@@ -163,16 +180,22 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     exception: ValidationError[],
     metadata: any,
   ): ValidationErrorResponseDto {
-    const validationErrors: ValidationFieldErrorDto[] = exception.map(error => ({
-      field: error.property,
-      message: error.constraints 
-        ? Object.values(error.constraints).join(', ')
-        : 'Validation failed',
-      value: error.value,
-      constraints: error.constraints ? Object.keys(error.constraints) : [],
-    }));
+    const validationErrors: ValidationFieldErrorDto[] = exception.map(
+      (error) => ({
+        field: error.property,
+        message: error.constraints
+          ? Object.values(error.constraints).join(', ')
+          : 'Validation failed',
+        value: error.value,
+        constraints: error.constraints ? Object.keys(error.constraints) : [],
+      }),
+    );
 
-    return ResponseBuilder.validationError(validationErrors, ['Validation failed'], metadata);
+    return ResponseBuilder.validationError(
+      validationErrors,
+      ['Validation failed'],
+      metadata,
+    );
   }
 
   /**
@@ -182,9 +205,10 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     exception: unknown,
     metadata: any,
   ): ErrorResponseDto {
-    const message = exception instanceof Error 
-      ? exception.message 
-      : 'An unexpected error occurred';
+    const message =
+      exception instanceof Error
+        ? exception.message
+        : 'An unexpected error occurred';
 
     const details: Record<string, unknown> = {};
 
@@ -246,7 +270,9 @@ export class GlobalExceptionFilter implements ExceptionFilter {
   /**
    * Extract error details from exception response
    */
-  private getErrorDetails(exceptionResponse: any): Record<string, unknown> | undefined {
+  private getErrorDetails(
+    exceptionResponse: any,
+  ): Record<string, unknown> | undefined {
     if (typeof exceptionResponse === 'object' && exceptionResponse !== null) {
       const { message, error, ...details } = exceptionResponse;
       return Object.keys(details).length > 0 ? details : undefined;
@@ -257,10 +283,15 @@ export class GlobalExceptionFilter implements ExceptionFilter {
   /**
    * Log the error with appropriate level
    */
-  private logError(exception: unknown, request: Request, httpStatus: number): void {
-    const message = exception instanceof Error ? exception.message : 'Unknown error';
+  private logError(
+    exception: unknown,
+    request: Request,
+    httpStatus: number,
+  ): void {
+    const message =
+      exception instanceof Error ? exception.message : 'Unknown error';
     const stack = exception instanceof Error ? exception.stack : undefined;
-    
+
     const logContext = {
       url: request.url,
       method: request.method,

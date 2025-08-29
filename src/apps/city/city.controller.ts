@@ -58,9 +58,9 @@ export class CityController {
     status: 200,
     description: 'User accessible cities retrieved successfully',
   })
-  @ApiQuery({ 
+  @ApiQuery({
     name: 'search',
-    required: false
+    required: false,
   })
   async findBasicCities(
     @CurrentUser() user: CurrentUserDto,
