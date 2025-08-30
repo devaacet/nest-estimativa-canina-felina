@@ -344,4 +344,50 @@ export class FormRepository extends Repository<Form> {
 
     return { forms, total };
   }
+
+  async getFormsWithAllRelationsForExport({
+    cityIds,
+    userId,
+    dateRange,
+  }: {
+    cityIds?: string[];
+    userId?: string;
+    dateRange?: { startDate: Date; endDate: Date };
+  }): Promise<Form[]> {
+    let query = this.createQueryBuilder('form')
+      .leftJoinAndSelect('form.user', 'user')
+      .leftJoinAndSelect('form.city', 'city')
+      .leftJoinAndSelect('form.currentAnimals', 'currentAnimals')
+      .leftJoinAndSelect('form.previousAnimals', 'previousAnimals')
+      .leftJoinAndSelect('form.puppiesKittens', 'puppiesKittens')
+      .leftJoinAndSelect('form.animalAbsence', 'animalAbsence')
+      .leftJoinAndSelect('form.questionResponses', 'questionResponses')
+      .leftJoinAndSelect('questionResponses.question', 'question');
+
+    // Apply role-based filtering
+    if (userId) {
+      // Researchers only see forms created by them
+      query = query.where('form.userId = :userId', { userId });
+    }
+
+    if (cityIds && cityIds.length > 0) {
+      // Managers and clients only see forms from their accessible cities
+      if (userId) {
+        query = query.andWhere('form.cityId IN (:...cityIds)', { cityIds });
+      } else {
+        query = query.where('form.cityId IN (:...cityIds)', { cityIds });
+      }
+    }
+
+    // Apply date range filter
+    if (dateRange) {
+      query = query.andWhere('form.form_date BETWEEN :startDate AND :endDate', {
+        startDate: dateRange.startDate,
+        endDate: dateRange.endDate,
+      });
+    }
+
+    // Order by creation date for consistent export
+    return query.orderBy('form.createdAt', 'DESC').getMany();
+  }
 }

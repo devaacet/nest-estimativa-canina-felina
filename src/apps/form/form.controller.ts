@@ -3,14 +3,17 @@ import {
   Controller,
   Delete,
   Get,
+  Header,
   Param,
   ParseIntPipe,
   ParseUUIDPipe,
   Patch,
   Post,
   Query,
+  Res,
   UseGuards,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { FormService } from './forms.service';
 import {
@@ -229,5 +232,81 @@ export class FormController {
   @Get(':id/animal-count')
   getAnimalCount(@Param('id', ParseUUIDPipe) formId: string) {
     return this.formService.getAnimalCount(formId);
+  }
+
+  @Get('export/excel')
+  @ApiOperation({
+    summary: 'Export forms to Excel file with role-based access control',
+  })
+  @ApiQuery({
+    name: 'cityIds',
+    required: false,
+    type: String,
+    description:
+      'Comma-separated city IDs to filter (intersected with user accessible cities)',
+  })
+  @ApiQuery({
+    name: 'startDate',
+    required: false,
+    type: String,
+    description: 'Start date for filtering forms (YYYY-MM-DD format)',
+  })
+  @ApiQuery({
+    name: 'endDate',
+    required: false,
+    type: String,
+    description: 'End date for filtering forms (YYYY-MM-DD format)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Excel file generated and downloaded successfully',
+    content: {
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': {
+        schema: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  @Header(
+    'Content-Type',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  )
+  async exportToExcel(
+    @CurrentUser() user: CurrentUserDto,
+    @Res() res: Response,
+    @Query('cityIds') cityIds?: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ): Promise<void> {
+    const cityIdsArray = cityIds
+      ? cityIds.split(',').filter((id) => id.trim())
+      : undefined;
+
+    const dateRange =
+      startDate && endDate
+        ? { startDate: new Date(startDate), endDate: new Date(endDate) }
+        : undefined;
+
+    // Use the same logic as findAll to get forms with proper access control
+    const formsData = await this.formService.getFormsForExcelExport({
+      user,
+      cityIds: cityIdsArray,
+      dateRange,
+    });
+
+    // Generate Excel buffer
+    const excelBuffer = await this.formService.generateExcelExport(formsData);
+
+    // Set response headers for file download
+    const filename = `forms-export-${new Date().toISOString().split('T')[0]}.xlsx`;
+    res.set({
+      'Content-Disposition': `attachment; filename="${filename}"`,
+      'Content-Length': excelBuffer.length.toString(),
+    });
+
+    // Send the buffer
+    res.end(excelBuffer);
   }
 }

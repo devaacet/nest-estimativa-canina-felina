@@ -7,6 +7,7 @@ import { FormRepository } from './repositories/form.repository';
 import { FormQuestionResponseRepository } from './repositories/form-question-response.repository';
 import { Form } from './entities/form.entity';
 import { FormQuestionResponse } from './entities/form-question-response.entity';
+import { ExcelExportService } from './services/excel-export.service';
 import {
   CreateFormDto,
   CreateFormResponseDto,
@@ -23,6 +24,7 @@ export class FormService {
     private readonly formRepository: FormRepository,
     private readonly formQuestionResponseRepository: FormQuestionResponseRepository,
     private readonly cityService: CityService,
+    private readonly excelExportService: ExcelExportService,
   ) {}
 
   async create(createFormDto: CreateFormDto): Promise<Form> {
@@ -324,19 +326,7 @@ export class FormService {
     };
   }
 
-  async findAllWithPagination({
-    user,
-    page = 1,
-    limit = 10,
-    cityIds,
-    dateRange,
-  }: {
-    user: CurrentUserDto;
-    page?: number;
-    limit?: number;
-    cityIds?: string[];
-    dateRange?: { startDate: Date; endDate: Date };
-  }): Promise<PaginatedDataDto<FormListResponseDto>> {
+  private async getCityIdsFilter(user: CurrentUserDto, cityIds?: string[]) {
     let accessibleCityIds: string[] = [];
 
     if (user.role === UserRole.ADMINISTRATOR) {
@@ -352,6 +342,24 @@ export class FormService {
         );
       }
     }
+
+    return accessibleCityIds;
+  }
+
+  async findAllWithPagination({
+    user,
+    page = 1,
+    limit = 10,
+    cityIds,
+    dateRange,
+  }: {
+    user: CurrentUserDto;
+    page?: number;
+    limit?: number;
+    cityIds?: string[];
+    dateRange?: { startDate: Date; endDate: Date };
+  }): Promise<PaginatedDataDto<FormListResponseDto>> {
+    const accessibleCityIds = await this.getCityIdsFilter(user, cityIds);
 
     // Get paginated forms from repository
     const { forms, total } = await this.formRepository.findAllWithPagination({
@@ -369,5 +377,28 @@ export class FormService {
       limit,
       page,
     );
+  }
+
+  async getFormsForExcelExport({
+    user,
+    cityIds,
+    dateRange,
+  }: {
+    user: CurrentUserDto;
+    cityIds?: string[];
+    dateRange?: { startDate: Date; endDate: Date };
+  }): Promise<Form[]> {
+    const accessibleCityIds = await this.getCityIdsFilter(user, cityIds);
+
+    // Get forms with all relations for Excel export
+    return this.formRepository.getFormsWithAllRelationsForExport({
+      cityIds: accessibleCityIds,
+      userId: user.role === UserRole.RESEARCHER ? user.id : undefined,
+      dateRange,
+    });
+  }
+
+  async generateExcelExport(forms: Form[]): Promise<Buffer> {
+    return this.excelExportService.generateFormsExcel(forms);
   }
 }
