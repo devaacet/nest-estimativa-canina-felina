@@ -8,11 +8,9 @@ import {
   IsOptional,
   IsPhoneNumber,
   IsString,
-  IsStrongPassword,
   ValidateIf,
 } from 'class-validator';
 import { UserRole } from 'src/shared';
-import { passwordValidation } from 'src/shared/constants';
 
 export class RegisterUserDto {
   @ApiProperty({
@@ -22,18 +20,6 @@ export class RegisterUserDto {
   @IsEmail({}, { message: 'Email deve ter um formato válido' })
   @IsNotEmpty({ message: 'Email é obrigatório' })
   email: string;
-
-  @ApiProperty({
-    description: 'Senha do usuário',
-    example: 'mySecurePassword123',
-    minLength: 6,
-  })
-  @IsString({ message: 'Senha deve ser uma string' })
-  @IsStrongPassword(passwordValidation, {
-    message: 'Senha não atende os critérios de segurança.',
-  })
-  @IsNotEmpty({ message: 'Senha é obrigatória' })
-  password: string;
 
   @ApiProperty({
     description: 'Nome completo do usuário',
