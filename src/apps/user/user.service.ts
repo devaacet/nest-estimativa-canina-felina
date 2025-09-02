@@ -45,7 +45,7 @@ export class UserService {
         'Usuários do tipo cliente só podem ter acesso a uma cidade',
       );
 
-    if (role !== UserRole.ADMINISTRATOR) {
+    if (currentUser.role !== UserRole.ADMINISTRATOR) {
       cityIds.forEach((city) => {
         if (!currentUser.cityIds.includes(city))
           throw new BadRequestException('Usuário não tem acesso a essa cidade');

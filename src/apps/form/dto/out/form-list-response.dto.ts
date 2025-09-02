@@ -16,7 +16,8 @@ export class FormListResponseDto {
   status: FormStatus;
 
   @ApiProperty({
-    description: 'Progress percentage based on current step relative to total steps (8)',
+    description:
+      'Progress percentage based on current step relative to total steps (8)',
     example: 37.5,
     minimum: 0,
     maximum: 100,

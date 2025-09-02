@@ -44,6 +44,7 @@ async function bootstrap() {
         'http://localhost:3000', // Alternative local dev
         'http://localhost:4173', // Vite preview mode
         'https://localhost:5173', // HTTPS local
+        'http://10.0.0.96:5173',
         // VPS domain for production/development
         'https://srv964791.hstgr.cloud',
         'http://srv964791.hstgr.cloud',

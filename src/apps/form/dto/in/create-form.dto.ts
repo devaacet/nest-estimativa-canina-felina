@@ -1,4 +1,5 @@
 import {
+  IsArray,
   IsBoolean,
   IsDateString,
   IsEnum,
@@ -9,19 +10,38 @@ import {
   IsUUID,
   Max,
   Min,
+  ValidateNested,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 import {
+  AnimalCondition,
+  AnimalDestiny,
+  AnimalSpecies,
+  CareType,
   EducationLevel,
-  FormType,
+  FormStatus,
   HousingType,
   IncomeRange,
   InterviewStatus,
   ResidenceType,
   VetFrequency,
 } from '../../../../shared/enums';
+import { CreateCurrentAnimalDto } from '../create-current-animal.dto';
+import { CreatePreviousAnimalDto } from '../create-previous-animal.dto';
+import { CreatePuppiesKittensDto } from '../create-puppies-kittens.dto';
+import { CreateAnimalAbsenceDto } from '../create-animal-absence.dto';
 
 export class CreateFormDto {
+  @ApiProperty({
+    description: 'Optional form ID for update operations',
+    example: 'uuid-string',
+    required: false,
+  })
+  @IsOptional()
+  @IsUUID()
+  id?: string;
+
   @ApiProperty({
     description: 'User ID who is filling the form',
     example: 'uuid-string',
@@ -37,20 +57,13 @@ export class CreateFormDto {
   cityId: string;
 
   @ApiProperty({
-    description: 'Date when the form was filled',
-    example: '2024-01-01',
+    description: 'Status of the form',
+    enum: FormStatus,
+    example: FormStatus.DRAFT,
   })
-  @IsDateString()
-  formDate: string;
-
-  @ApiProperty({
-    description: 'Type of form',
-    enum: FormType,
-    required: false,
-  })
+  @IsEnum(FormStatus)
   @IsOptional()
-  @IsEnum(FormType)
-  formType?: FormType;
+  status?: FormStatus;
 
   // Step 1: Initial Information
   @ApiProperty({
@@ -62,21 +75,17 @@ export class CreateFormDto {
   @IsString()
   interviewerName?: string;
 
-  @IsOptional()
   @IsDateString()
-  interviewDate?: string;
+  interviewDate: string;
 
-  @IsOptional()
   @IsString()
-  censusSectorCode?: string;
+  censusSectorCode: string;
 
-  @IsOptional()
   @IsEnum(InterviewStatus)
-  interviewStatus?: InterviewStatus;
+  interviewStatus: InterviewStatus;
 
-  @IsOptional()
   @IsString()
-  addressStreet?: string;
+  addressStreet: string;
 
   @IsOptional()
   @IsString()
@@ -86,9 +95,8 @@ export class CreateFormDto {
   @IsString()
   addressComplement?: string;
 
-  @IsOptional()
   @IsEnum(ResidenceType)
-  residenceType?: ResidenceType;
+  residenceType: ResidenceType;
 
   // Step 2: Socioeconomic Information
   @IsOptional()
@@ -129,8 +137,8 @@ export class CreateFormDto {
   hasDogsCats?: boolean;
 
   @IsOptional()
-  @IsString()
-  generalAnimalDestiny?: string;
+  @IsEnum(AnimalDestiny)
+  generalAnimalDestiny?: AnimalDestiny;
 
   @IsOptional()
   @IsBoolean()
@@ -142,20 +150,21 @@ export class CreateFormDto {
   strayAnimalsCount?: number;
 
   @IsOptional()
-  @IsString()
-  strayAnimalsSpecies?: string;
+  @IsEnum(AnimalSpecies)
+  strayAnimalsSpecies?: AnimalSpecies;
 
   @IsOptional()
-  @IsString()
-  strayAnimalsCondition?: string;
+  @IsEnum(AnimalCondition)
+  strayAnimalsCondition?: AnimalCondition;
 
   @IsOptional()
   @IsBoolean()
   caresStreetAnimals?: boolean;
 
   @IsOptional()
-  @IsString()
-  careTypes?: string;
+  @IsEnum(CareType)
+  @IsArray()
+  careTypes?: CareType[];
 
   @IsOptional()
   @IsEnum(VetFrequency)
@@ -175,4 +184,52 @@ export class CreateFormDto {
   @Min(1)
   @Max(8)
   currentStep?: number;
+
+  // Step 4: Current Animals
+  @ApiProperty({
+    description: 'Array of current animals in the household',
+    type: [CreateCurrentAnimalDto],
+    required: false,
+  })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateCurrentAnimalDto)
+  currentAnimals?: CreateCurrentAnimalDto[];
+
+  // Step 5: Previous Animals
+  @ApiProperty({
+    description: 'Array of previous animals that the household had',
+    type: [CreatePreviousAnimalDto],
+    required: false,
+  })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreatePreviousAnimalDto)
+  previousAnimals?: CreatePreviousAnimalDto[];
+
+  // Step 6: Puppies and Kittens
+  @ApiProperty({
+    description: 'Array of puppies/kittens information',
+    type: [CreatePuppiesKittensDto],
+    required: false,
+  })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreatePuppiesKittensDto)
+  puppiesKittens?: CreatePuppiesKittensDto[];
+
+  // Step 7: Animal Absence
+  @ApiProperty({
+    description: 'Array of animal absence information',
+    type: [CreateAnimalAbsenceDto],
+    required: false,
+  })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateAnimalAbsenceDto)
+  animalAbsence?: CreateAnimalAbsenceDto[];
 }

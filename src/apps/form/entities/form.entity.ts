@@ -10,15 +10,18 @@ import {
 } from 'typeorm';
 import { User } from '../../user/entities/user.entity';
 import { City } from '../../city/entities/city.entity';
-import { CurrentAnimal } from '../../animals/entities/current-animal.entity';
-import { PreviousAnimal } from '../../animals/entities/previous-animal.entity';
-import { PuppiesKittens } from '../../animals/entities/puppies-kittens.entity';
-import { AnimalAbsence } from '../../animals/entities/animal-absence.entity';
+import { CurrentAnimalForm } from './current-animal-form.entity';
+import { PreviousAnimalForm } from './previous-animal-form.entity';
+import { PuppiesKittensForm } from './puppies-kittens-form.entity';
+import { AnimalAbsenceForm } from './animal-absence-form.entity';
 import { FormQuestionResponse } from './form-question-response.entity';
 import {
+  AnimalCondition,
+  AnimalDestiny,
+  AnimalSpecies,
+  CareType,
   EducationLevel,
   FormStatus,
-  FormType,
   HousingType,
   IncomeRange,
   InterviewStatus,
@@ -30,17 +33,6 @@ import {
 export class Form {
   @PrimaryGeneratedColumn('uuid')
   id: string;
-
-  @Column({ name: 'form_date', type: 'date' })
-  formDate: Date;
-
-  @Column({
-    name: 'form_type',
-    type: 'enum',
-    enum: FormType,
-    default: FormType.FIRST_FORM,
-  })
-  formType: FormType;
 
   @Column({
     type: 'enum',
@@ -132,8 +124,12 @@ export class Form {
   @Column({ name: 'has_dogs_cats', nullable: true })
   hasDogsCats?: boolean;
 
-  @Column({ name: 'general_animal_destiny', nullable: true })
-  generalAnimalDestiny?: string;
+  @Column({
+    name: 'general_animal_destiny',
+    nullable: true,
+    enum: AnimalDestiny,
+  })
+  generalAnimalDestiny?: AnimalDestiny;
 
   @Column({ name: 'stray_animals_neighborhood', nullable: true })
   strayAnimalsNeighborhood?: boolean;
@@ -141,17 +137,30 @@ export class Form {
   @Column({ name: 'stray_animals_count', default: 0 })
   strayAnimalsCount: number;
 
-  @Column({ name: 'stray_animals_species', nullable: true })
-  strayAnimalsSpecies?: string;
+  @Column({
+    name: 'stray_animals_species',
+    nullable: true,
+    enum: AnimalSpecies,
+  })
+  strayAnimalsSpecies?: AnimalSpecies;
 
-  @Column({ name: 'stray_animals_condition', nullable: true })
-  strayAnimalsCondition?: string;
+  @Column({
+    name: 'stray_animals_condition',
+    nullable: true,
+    enum: AnimalCondition,
+  })
+  strayAnimalsCondition?: AnimalCondition;
 
   @Column({ name: 'cares_street_animals', nullable: true })
   caresStreetAnimals?: boolean;
 
-  @Column({ name: 'care_types', nullable: true })
-  careTypes?: string; // JSON array
+  @Column({
+    name: 'care_types',
+    type: 'text',
+    array: true,
+    nullable: true,
+  })
+  careTypes?: CareType[];
 
   @Column({
     name: 'vet_frequency',
@@ -201,17 +210,17 @@ export class Form {
   @JoinColumn({ name: 'city_id' })
   city: City;
 
-  @OneToMany(() => CurrentAnimal, (animal) => animal.form)
-  currentAnimals: CurrentAnimal[];
+  @OneToMany(() => CurrentAnimalForm, (animal) => animal.form)
+  currentAnimals: CurrentAnimalForm[];
 
-  @OneToMany(() => PreviousAnimal, (animal) => animal.form)
-  previousAnimals: PreviousAnimal[];
+  @OneToMany(() => PreviousAnimalForm, (animal) => animal.form)
+  previousAnimals: PreviousAnimalForm[];
 
-  @OneToMany(() => PuppiesKittens, (puppies) => puppies.form)
-  puppiesKittens: PuppiesKittens[];
+  @OneToMany(() => PuppiesKittensForm, (puppies) => puppies.form)
+  puppiesKittens: PuppiesKittensForm[];
 
-  @OneToMany(() => AnimalAbsence, (absence) => absence.form)
-  animalAbsence: AnimalAbsence[];
+  @OneToMany(() => AnimalAbsenceForm, (absence) => absence.form)
+  animalAbsence: AnimalAbsenceForm[];
 
   @OneToMany(() => FormQuestionResponse, (response) => response.form)
   questionResponses: FormQuestionResponse[];

@@ -23,11 +23,6 @@ export enum StepType {
   EXTRA_INFO = 'extra_info',
 }
 
-export enum FormType {
-  FIRST_FORM = 'first_form',
-  FOLLOW_UP_FORM = 'follow_up_form',
-}
-
 export enum AuditAction {
   CREATE = 'CREATE',
   UPDATE = 'UPDATE',
@@ -173,4 +168,10 @@ export enum NoAnimalsReason {
   LIKE_NO_INTEREST = 'like_no_interest',
   COST = 'cost',
   LACK_TIME = 'lack_time',
+}
+
+export enum CastrationDecision {
+  NO = 'no',
+  YES = 'yes',
+  DONT_KNOW = 'dont_know',
 }

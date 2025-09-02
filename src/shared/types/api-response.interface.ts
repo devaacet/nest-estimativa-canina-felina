@@ -93,6 +93,7 @@ export interface PaginatedData<T> {
 /**
  * Paginated success response
  */
-export interface PaginatedSuccessResponse<T> extends SuccessResponse<PaginatedData<T>> {
+export interface PaginatedSuccessResponse<T>
+  extends SuccessResponse<PaginatedData<T>> {
   data: PaginatedData<T>;
 }

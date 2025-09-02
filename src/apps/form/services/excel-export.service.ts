@@ -9,7 +9,6 @@ export class ExcelExportService {
     // Main form headers (from form-flow.md)
     main: {
       id: 'ID',
-      formDate: 'Data do Formulário',
       formType: 'Tipo de Formulário',
       status: 'Status',
       currentStep: 'Etapa Atual',
@@ -139,10 +138,6 @@ export class ExcelExportService {
     [Enums.FormStatus.DRAFT]: 'Rascunho',
     [Enums.FormStatus.COMPLETED]: 'Completo',
     [Enums.FormStatus.SUBMITTED]: 'Enviado',
-
-    // FormType
-    [Enums.FormType.FIRST_FORM]: 'Primeiro Formulário',
-    [Enums.FormType.FOLLOW_UP_FORM]: 'Acompanhamento',
 
     // InterviewStatus
     [Enums.InterviewStatus.ATTENDED]: 'Atendida',
@@ -303,8 +298,7 @@ export class ExcelExportService {
     forms.forEach((form) => {
       const row = [
         form.id,
-        this.formatDate(form.formDate),
-        this.translateEnum(form.formType),
+        this.formatDate(form.interviewDate),
         this.translateEnum(form.status),
         form.currentStep,
 
@@ -372,26 +366,26 @@ export class ExcelExportService {
         form.currentAnimals.forEach((animal) => {
           const row = [
             form.id,
-            animal.animal_name || '',
-            this.translateEnum(animal.animal_species),
-            this.translateEnum(animal.animal_gender),
-            animal.age_months || '',
-            animal.age_years || '',
-            this.translateEnum(animal.castration_status),
-            this.translateEnum(animal.castration_reason),
-            this.formatBoolean(animal.interested_castration),
-            this.formatBoolean(animal.is_vaccinated),
-            this.translateEnum(animal.vaccination_reason),
-            this.formatBoolean(animal.street_access_unaccompanied),
-            this.translateEnum(animal.acquisition_method),
-            this.translateEnum(animal.acquisition_time),
-            animal.acquisition_state || '',
-            animal.acquisition_city || '',
-            animal.housing_methods || '',
-            this.translateEnum(animal.animal_breed),
-            this.formatBoolean(animal.has_microchip),
-            this.formatBoolean(animal.interested_microchip),
-            animal.registration_order,
+            animal.name || '',
+            this.translateEnum(animal.species),
+            this.translateEnum(animal.gender),
+            animal.ageMonths || '',
+            animal.ageYears || '',
+            this.translateEnum(animal.castrationStatus),
+            this.translateEnum(animal.castrationReason),
+            this.formatBoolean(animal.interestedCastration),
+            this.formatBoolean(animal.isVaccinated),
+            this.translateEnum(animal.vaccinationReason),
+            this.formatBoolean(animal.streetAccessUnaccompanied),
+            this.translateEnum(animal.acquisitionMethod),
+            this.translateEnum(animal.acquisitionTime),
+            animal.acquisitionState || '',
+            animal.acquisitionCity || '',
+            animal.housingMethods || '',
+            this.translateEnum(animal.animalBreed),
+            this.formatBoolean(animal.hasMicrochip),
+            this.formatBoolean(animal.interestedMicrochip),
+            animal.registrationOrder,
           ];
 
           worksheet.addRow(row);
@@ -419,18 +413,18 @@ export class ExcelExportService {
         form.previousAnimals.forEach((animal) => {
           const row = [
             form.id,
-            animal.animal_name || '',
-            this.translateEnum(animal.animal_species),
-            this.translateEnum(animal.animal_gender),
-            animal.age_months || '',
-            animal.age_years || '',
-            this.translateEnum(animal.castration_status),
-            this.translateEnum(animal.castration_reason),
-            this.formatBoolean(animal.is_vaccinated),
-            this.translateEnum(animal.vaccination_reason),
-            this.translateEnum(animal.acquisition_method),
-            this.translateEnum(animal.animal_destiny),
-            animal.registration_order,
+            animal.name || '',
+            this.translateEnum(animal.species),
+            this.translateEnum(animal.gender),
+            animal.ageMonths || '',
+            animal.ageYears || '',
+            this.translateEnum(animal.castrated),
+            this.translateEnum(animal.castrationReason),
+            this.formatBoolean(animal.isVaccinated),
+            this.translateEnum(animal.vaccinationReason),
+            this.translateEnum(animal.acquisitionMethod),
+            this.translateEnum(animal.destiny),
+            animal.registrationOrder,
           ];
 
           worksheet.addRow(row);
@@ -458,13 +452,13 @@ export class ExcelExportService {
         form.puppiesKittens.forEach((puppies) => {
           const row = [
             form.id,
-            this.formatBoolean(puppies.had_puppies_last_12_months),
-            puppies.puppy_count || '',
-            this.formatBoolean(puppies.puppies_vaccinated),
-            this.translateEnum(puppies.vaccination_reason),
-            this.translateEnum(puppies.puppies_origin),
-            this.translateEnum(puppies.puppies_destiny),
-            puppies.registration_order,
+            this.formatBoolean(puppies.hadPuppiesLast12Months),
+            puppies.puppyCount || '',
+            this.formatBoolean(puppies.puppiesVaccinated),
+            this.translateEnum(puppies.vaccinationReason),
+            this.translateEnum(puppies.puppiesOrigin),
+            this.translateEnum(puppies.puppiesDestiny),
+            puppies.registrationOrder,
           ];
 
           worksheet.addRow(row);
@@ -492,11 +486,11 @@ export class ExcelExportService {
         form.animalAbsence.forEach((absence) => {
           const row = [
             form.id,
-            this.translateEnum(absence.hypothetical_acquisition),
-            this.formatBoolean(absence.would_castrate),
-            this.translateEnum(absence.castration_reason),
-            absence.no_animals_reasons || '', // This is JSON array, may need special handling
-            1, // registration_order doesn't exist, use default
+            this.translateEnum(absence.hypotheticalAcquisition),
+            this.formatBoolean(absence.wouldCastrate),
+            this.translateEnum(absence.castrationReason),
+            absence.noAnimalsReasons || '', // This is array, may need special handling
+            1, // registration_order doesn't exist for this entity, use default
           ];
 
           worksheet.addRow(row);

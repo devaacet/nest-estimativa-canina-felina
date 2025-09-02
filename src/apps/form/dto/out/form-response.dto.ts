@@ -1,7 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
   EducationLevel,
-  FormType,
   HousingType,
   IncomeRange,
   InterviewStatus,
@@ -27,19 +26,6 @@ export class FormResponseDto {
     example: 'uuid-string',
   })
   cityId: string;
-
-  @ApiProperty({
-    description: 'Date when the form was filled',
-    example: '2024-01-01',
-  })
-  formDate: string;
-
-  @ApiProperty({
-    description: 'Type of form',
-    enum: FormType,
-    required: false,
-  })
-  formType?: FormType;
 
   @ApiProperty({
     description: 'Current step of the form (1-8)',

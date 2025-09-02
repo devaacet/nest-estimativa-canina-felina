@@ -114,7 +114,7 @@ export class CityRepository {
   async findCitiesForUser(userId: string, search?: string): Promise<City[]> {
     const qb = this.cityRepository
       .createQueryBuilder('city')
-      .select(['year', 'name', 'id'])
+      .select(['city.year', 'city.name', 'city.id'])
       .innerJoin('city.users', 'users')
       .where('users.id = :userId', { userId })
       .andWhere('city.active = true');

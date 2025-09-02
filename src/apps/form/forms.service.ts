@@ -3,10 +3,15 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { DataSource } from 'typeorm';
 import { FormRepository } from './repositories/form.repository';
 import { FormQuestionResponseRepository } from './repositories/form-question-response.repository';
 import { Form } from './entities/form.entity';
 import { FormQuestionResponse } from './entities/form-question-response.entity';
+import { CurrentAnimalForm } from './entities/current-animal-form.entity';
+import { PreviousAnimalForm } from './entities/previous-animal-form.entity';
+import { PuppiesKittensForm } from './entities/puppies-kittens-form.entity';
+import { AnimalAbsenceForm } from './entities/animal-absence-form.entity';
 import { ExcelExportService } from './services/excel-export.service';
 import {
   CreateFormDto,
@@ -25,6 +30,7 @@ export class FormService {
     private readonly formQuestionResponseRepository: FormQuestionResponseRepository,
     private readonly cityService: CityService,
     private readonly excelExportService: ExcelExportService,
+    private readonly dataSource: DataSource,
   ) {}
 
   async create(createFormDto: CreateFormDto): Promise<Form> {
@@ -35,6 +41,192 @@ export class FormService {
     });
 
     return this.formRepository.save(form);
+  }
+
+  async createOrUpdate(
+    id: string,
+    createFormDto: CreateFormDto,
+  ): Promise<Form> {
+    return this.dataSource.transaction(async (manager) => {
+      let form = await manager.findOne(Form, {
+        where: { id },
+        relations: [
+          'currentAnimals',
+          'previousAnimals',
+          'puppiesKittens',
+          'animalAbsence',
+        ],
+      });
+
+      if (form) {
+        // Update existing form
+        const {
+          currentAnimals,
+          previousAnimals,
+          puppiesKittens,
+          animalAbsence,
+          ...formData
+        } = createFormDto;
+
+        // Update form fields
+        Object.assign(form, formData);
+        form = await manager.save(Form, {
+          ...form,
+          city: {
+            id: formData.cityId,
+          },
+          user: {
+            id: formData.userId,
+          },
+        });
+
+        // Handle current animals
+        if (currentAnimals) {
+          // Remove existing animals
+          await manager.delete(CurrentAnimalForm, { formId: id });
+
+          // Create new animals
+          for (let i = 0; i < currentAnimals.length; i++) {
+            const animal = manager.create(CurrentAnimalForm, {
+              ...currentAnimals[i],
+              formId: id,
+              registrationOrder: i + 1,
+            });
+            await manager.save(CurrentAnimalForm, animal);
+          }
+        }
+
+        // Handle previous animals
+        if (previousAnimals) {
+          await manager.delete(PreviousAnimalForm, { formId: id });
+
+          for (let i = 0; i < previousAnimals.length; i++) {
+            const animal = manager.create(PreviousAnimalForm, {
+              ...previousAnimals[i],
+              formId: id,
+              registrationOrder: i + 1,
+            });
+            await manager.save(PreviousAnimalForm, animal);
+          }
+        }
+
+        // Handle puppies and kittens
+        if (puppiesKittens) {
+          await manager.delete(PuppiesKittensForm, { formId: id });
+
+          for (let i = 0; i < puppiesKittens.length; i++) {
+            const puppies = manager.create(PuppiesKittensForm, {
+              ...puppiesKittens[i],
+              formId: id,
+              registrationOrder: i + 1,
+            });
+            await manager.save(PuppiesKittensForm, puppies);
+          }
+        }
+
+        // Handle animal absence
+        if (animalAbsence) {
+          await manager.delete(AnimalAbsenceForm, { formId: id });
+
+          for (const absence of animalAbsence) {
+            const absenceEntity = manager.create(AnimalAbsenceForm, {
+              ...absence,
+              formId: id,
+            });
+            await manager.save(AnimalAbsenceForm, absenceEntity);
+          }
+        }
+      } else {
+        // Create new form
+        const {
+          currentAnimals,
+          previousAnimals,
+          puppiesKittens,
+          animalAbsence,
+          ...formData
+        } = createFormDto;
+
+        form = manager.create(Form, {
+          id,
+          ...formData,
+          status: formData.status || FormStatus.DRAFT,
+          currentStep: formData.currentStep || 1,
+          city: {
+            id: formData.cityId,
+          },
+          user: {
+            id: formData.userId,
+          },
+        });
+        form = await manager.save(Form, form);
+
+        // Create related animals
+        if (currentAnimals) {
+          for (let i = 0; i < currentAnimals.length; i++) {
+            const animal = manager.create(CurrentAnimalForm, {
+              ...currentAnimals[i],
+              formId: id,
+              registrationOrder: i + 1,
+            });
+            await manager.save(CurrentAnimalForm, animal);
+          }
+        }
+
+        if (previousAnimals) {
+          for (let i = 0; i < previousAnimals.length; i++) {
+            const animal = manager.create(PreviousAnimalForm, {
+              ...previousAnimals[i],
+              formId: id,
+              registrationOrder: i + 1,
+            });
+            await manager.save(PreviousAnimalForm, animal);
+          }
+        }
+
+        if (puppiesKittens) {
+          for (let i = 0; i < puppiesKittens.length; i++) {
+            const puppies = manager.create(PuppiesKittensForm, {
+              ...puppiesKittens[i],
+              formId: id,
+              registrationOrder: i + 1,
+            });
+            await manager.save(PuppiesKittensForm, puppies);
+          }
+        }
+
+        if (animalAbsence) {
+          for (const absence of animalAbsence) {
+            const absenceEntity = manager.create(AnimalAbsenceForm, {
+              ...absence,
+              formId: id,
+            });
+            await manager.save(AnimalAbsenceForm, absenceEntity);
+          }
+        }
+      }
+
+      // Return form with all relations
+      const formWithRelations = await manager.findOne(Form, {
+        where: { id },
+        relations: [
+          'user',
+          'city',
+          'currentAnimals',
+          'previousAnimals',
+          'puppiesKittens',
+          'animalAbsence',
+          'questionResponses',
+        ],
+      });
+
+      if (!formWithRelations) {
+        throw new NotFoundException(
+          `Form with ID "${id}" not found after creation/update`,
+        );
+      }
+
+      return formWithRelations;
+    });
   }
 
   async findAll(): Promise<Form[]> {

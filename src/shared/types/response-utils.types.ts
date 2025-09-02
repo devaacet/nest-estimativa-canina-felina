@@ -1,10 +1,10 @@
-import { 
-  ApiResponse, 
-  SuccessResponse, 
-  ErrorResponse, 
-  ValidationErrorResponse,
+import {
+  ApiError,
+  ApiResponse,
+  ErrorResponse,
   PaginatedSuccessResponse,
-  ApiError
+  SuccessResponse,
+  ValidationErrorResponse,
 } from './api-response.interface';
 
 /**
@@ -30,24 +30,29 @@ export type AnyApiResponse = SuccessResponse<unknown> | ErrorResponse;
 /**
  * Type guard to check if response is successful
  */
-export function isSuccessResponse<T>(response: ApiResponse<T>): response is SuccessResponse<T> {
+export function isSuccessResponse<T>(
+  response: ApiResponse<T>,
+): response is SuccessResponse<T> {
   return response.success === true;
 }
 
 /**
  * Type guard to check if response is an error
  */
-export function isErrorResponse(response: ApiResponse<unknown>): response is ErrorResponse {
+export function isErrorResponse(
+  response: ApiResponse<unknown>,
+): response is ErrorResponse {
   return response.success === false;
 }
 
 /**
  * Type guard to check if response is a validation error
  */
-export function isValidationError(response: ApiResponse<unknown>): response is ValidationErrorResponse {
+export function isValidationError(
+  response: ApiResponse<unknown>,
+): response is ValidationErrorResponse {
   return (
-    isErrorResponse(response) && 
-    response.error?.code === 'VALIDATION_ERROR'
+    isErrorResponse(response) && response.error?.code === 'VALIDATION_ERROR'
   );
 }
 
@@ -64,13 +69,15 @@ export type LegacyResponse<T> = {
 /**
  * Convert legacy response to standard format
  */
-export function fromLegacyFormat<T>(legacy: LegacyResponse<T>): StandardResponse<T> | ErrorResponse {
+export function fromLegacyFormat<T>(
+  legacy: LegacyResponse<T>,
+): StandardResponse<T> | ErrorResponse {
   const messages: string[] = [];
-  
+
   if (legacy.message) {
     messages.push(legacy.message);
   }
-  
+
   if (legacy.error) {
     messages.push(legacy.error);
   }
@@ -97,7 +104,9 @@ export function fromLegacyFormat<T>(legacy: LegacyResponse<T>): StandardResponse
 /**
  * Convert standard response to legacy format
  */
-export function toLegacyFormat<T>(response: StandardResponse<T>): LegacyResponse<T> {
+export function toLegacyFormat<T>(
+  response: StandardResponse<T>,
+): LegacyResponse<T> {
   return {
     success: response.success,
     data: response.data,

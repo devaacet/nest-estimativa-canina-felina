@@ -73,11 +73,11 @@ export class FormRepository extends Repository<Form> {
       .leftJoinAndSelect('form.user', 'user')
       .leftJoinAndSelect('form.city', 'city')
       .where('form.status = :status', { status: 'submitted' })
-      .andWhere('form.form_date BETWEEN :startDate AND :endDate', {
+      .andWhere('form.interview_date BETWEEN :startDate AND :endDate', {
         startDate,
         endDate,
       })
-      .orderBy('form.form_date', 'DESC')
+      .orderBy('form.interview_date', 'DESC')
       .getMany();
   }
 
@@ -149,17 +149,20 @@ export class FormRepository extends Repository<Form> {
     if (dateRange) {
       if (cityIds && cityIds.length > 0) {
         query = query.andWhere(
-          'form.form_date BETWEEN :startDate AND :endDate',
+          'form.interview_date BETWEEN :startDate AND :endDate',
           {
             startDate: dateRange.startDate,
             endDate: dateRange.endDate,
           },
         );
       } else {
-        query = query.where('form.form_date BETWEEN :startDate AND :endDate', {
-          startDate: dateRange.startDate,
-          endDate: dateRange.endDate,
-        });
+        query = query.where(
+          'form.interview_date BETWEEN :startDate AND :endDate',
+          {
+            startDate: dateRange.startDate,
+            endDate: dateRange.endDate,
+          },
+        );
       }
     }
 
@@ -179,11 +182,13 @@ export class FormRepository extends Repository<Form> {
     const formsWithAnimals = await this.createQueryBuilder('form')
       .leftJoinAndSelect('form.currentAnimals', 'ca')
       .where(
-        cityIds && cityIds.length > 0 ? 'form.cityId IN (:...cityIds)' : '1=1',
+        cityIds && cityIds.length > 0 ? 'form.city_id IN (:...cityIds)' : '1=1',
         { cityIds },
       )
       .andWhere(
-        dateRange ? 'form.form_date BETWEEN :startDate AND :endDate' : '1=1',
+        dateRange
+          ? 'form.interview_date BETWEEN :startDate AND :endDate'
+          : '1=1',
         dateRange,
       )
       .getMany();
@@ -199,10 +204,10 @@ export class FormRepository extends Repository<Form> {
         totalAnimalsRegistered += form.currentAnimals.length;
 
         form.currentAnimals.forEach((animal) => {
-          if (animal.castration_status !== CastrationStatus.NO) {
+          if (animal.castrationStatus !== CastrationStatus.NO) {
             castratedAnimals++;
           }
-          if (animal.is_vaccinated) {
+          if (animal.isVaccinated) {
             vaccinatedAnimals++;
           }
         });
@@ -226,9 +231,9 @@ export class FormRepository extends Repository<Form> {
     groupBy: 'day' | 'week' | 'month' = 'day',
   ): Promise<Array<{ date: string; completedForms: number }>> {
     const dateGroupings = {
-      week: "TO_CHAR(form.form_date, 'IYYY-IW')",
-      month: "TO_CHAR(form.form_date, 'YYYY-MM')",
-      day: "TO_CHAR(form.form_date, 'YYYY-MM-DD')",
+      week: "TO_CHAR(form.interview_date, 'IYYY-IW')",
+      month: "TO_CHAR(form.interview_date, 'YYYY-MM')",
+      day: "TO_CHAR(form.interview_date, 'YYYY-MM-DD')",
     };
 
     const dateGrouping = dateGroupings[groupBy];
@@ -245,10 +250,13 @@ export class FormRepository extends Repository<Form> {
     }
 
     if (dateRange) {
-      query = query.andWhere('form.form_date BETWEEN :startDate AND :endDate', {
-        startDate: dateRange.startDate,
-        endDate: dateRange.endDate,
-      });
+      query = query.andWhere(
+        'form.interview_date BETWEEN :startDate AND :endDate',
+        {
+          startDate: dateRange.startDate,
+          endDate: dateRange.endDate,
+        },
+      );
     }
 
     const results = await query
@@ -278,17 +286,20 @@ export class FormRepository extends Repository<Form> {
     if (dateRange) {
       if (cityIds && cityIds.length > 0) {
         query = query.andWhere(
-          'form.form_date BETWEEN :startDate AND :endDate',
+          'form.interview_date BETWEEN :startDate AND :endDate',
           {
             startDate: dateRange.startDate,
             endDate: dateRange.endDate,
           },
         );
       } else {
-        query = query.where('form.form_date BETWEEN :startDate AND :endDate', {
-          startDate: dateRange.startDate,
-          endDate: dateRange.endDate,
-        });
+        query = query.where(
+          'form.interview_date BETWEEN :startDate AND :endDate',
+          {
+            startDate: dateRange.startDate,
+            endDate: dateRange.endDate,
+          },
+        );
       }
     }
 
@@ -316,20 +327,23 @@ export class FormRepository extends Repository<Form> {
     // Apply role-based filtering
     if (userId) {
       // Researchers only see forms created by them
-      query = query.where('form.userId = :userId', { userId });
+      query = query.where('form.user_id = :userId', { userId });
     }
 
     if (cityIds && cityIds.length > 0) {
       // Managers and clients only see forms from their accessible cities
-      query = query.andWhere('form.cityId IN (:...cityIds)', { cityIds });
+      query = query.andWhere('form.city_id IN (:...cityIds)', { cityIds });
     }
 
     // Apply date range filter
     if (dateRange) {
-      query = query.andWhere('form.form_date BETWEEN :startDate AND :endDate', {
-        startDate: dateRange.startDate,
-        endDate: dateRange.endDate,
-      });
+      query = query.andWhere(
+        'form.interview_date BETWEEN :startDate AND :endDate',
+        {
+          startDate: dateRange.startDate,
+          endDate: dateRange.endDate,
+        },
+      );
     }
 
     // Count total items
@@ -367,24 +381,27 @@ export class FormRepository extends Repository<Form> {
     // Apply role-based filtering
     if (userId) {
       // Researchers only see forms created by them
-      query = query.where('form.userId = :userId', { userId });
+      query = query.where('form.user_id = :userId', { userId });
     }
 
     if (cityIds && cityIds.length > 0) {
       // Managers and clients only see forms from their accessible cities
       if (userId) {
-        query = query.andWhere('form.cityId IN (:...cityIds)', { cityIds });
+        query = query.andWhere('form.city_id IN (:...cityIds)', { cityIds });
       } else {
-        query = query.where('form.cityId IN (:...cityIds)', { cityIds });
+        query = query.where('form.city_id IN (:...cityIds)', { cityIds });
       }
     }
 
     // Apply date range filter
     if (dateRange) {
-      query = query.andWhere('form.form_date BETWEEN :startDate AND :endDate', {
-        startDate: dateRange.startDate,
-        endDate: dateRange.endDate,
-      });
+      query = query.andWhere(
+        'form.interview_date BETWEEN :startDate AND :endDate',
+        {
+          startDate: dateRange.startDate,
+          endDate: dateRange.endDate,
+        },
+      );
     }
 
     // Order by creation date for consistent export

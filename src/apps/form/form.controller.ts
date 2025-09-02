@@ -9,6 +9,7 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Put,
   Query,
   Res,
   UseGuards,
@@ -35,6 +36,23 @@ export class FormController {
   @Post()
   create(@Body() createFormDto: CreateFormDto) {
     return this.formService.create(createFormDto);
+  }
+
+  @Put(':id')
+  @ApiOperation({
+    summary: 'Create or update a form (idempotent operation)',
+    description:
+      'Creates a new form or updates existing one. Used for auto-save and submit operations.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Form created or updated successfully',
+  })
+  createOrUpdate(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() createFormDto: CreateFormDto,
+  ) {
+    return this.formService.createOrUpdate(id, createFormDto);
   }
 
   @Get()
