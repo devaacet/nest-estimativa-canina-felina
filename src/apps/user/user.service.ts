@@ -1,4 +1,5 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { UserRepository } from './repositories/user.repository';
 import { User } from './entities/user.entity';
 import { RegisterUserDto, UpdateUserDto } from './dto/in';
@@ -8,12 +9,18 @@ import { CurrentUserDto, PaginatedDataDto } from 'src/shared';
 import { CityRepository } from '../city/repositories/city.repository';
 import { hashPassword } from 'src/shared/utils';
 import { City } from 'src/apps/city/entities/city.entity';
+import { randomBytes } from 'crypto';
+import { EmailService } from '../email/email.service';
 
 @Injectable()
 export class UserService {
+  private readonly logger = new Logger(UserService.name);
+
   constructor(
     private readonly userRepository: UserRepository,
     private readonly cityRepository: CityRepository,
+    private readonly emailService: EmailService,
+    private readonly configService: ConfigService,
   ) {}
 
   checkIfCurrentUserCanSetRoleToUser(
@@ -96,6 +103,10 @@ export class UserService {
     });
   }
 
+  private generateRandomPassword(): string {
+    return randomBytes(32).toString('hex');
+  }
+
   async register(
     user: CurrentUserDto,
     dto: RegisterUserDto,
@@ -104,8 +115,9 @@ export class UserService {
     this.checkIfPassedClientInstitution(dto.role, dto.institution);
     this.checkIfCurrentUserCanSetCityToUser(user, dto.cityIds, dto.role);
     await this.checkIfEmailHasAlreadyBeenRegistered(dto.email);
+    const password = this.generateRandomPassword();
 
-    const hashedPassword = await hashPassword(dto.password);
+    const hashedPassword = await hashPassword(password);
 
     const { id } = await this.userRepository.create({
       email: dto.email,
@@ -115,6 +127,24 @@ export class UserService {
       role: dto.role,
       cities: dto.cityIds.map((cityId) => ({ id: cityId }) as City),
     });
+
+    try {
+      const loginUrl = this.configService.get<string>(
+        'API_BASE_URL',
+        'http://localhost:3001',
+      );
+
+      await this.emailService.sendWelcomeEmail({
+        name: dto.name,
+        email: dto.email,
+        password,
+        loginUrl,
+      });
+
+      this.logger.log(`Welcome email sent to new user: ${dto.email}`);
+    } catch (error) {
+      this.logger.error(`Failed to send welcome email to ${dto.email}:`, error);
+    }
 
     return {
       id,

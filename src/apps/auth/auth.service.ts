@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  Logger,
   UnauthorizedException,
 } from '@nestjs/common';
 import { UserRepository } from '../user/repositories/user.repository';
@@ -20,6 +21,7 @@ import {
   comparePasswordAndHash,
   hashPassword,
 } from 'src/shared/utils/password-hash.util';
+import { EmailService } from '../email/email.service';
 
 export interface AuthResult {
   user: User;
@@ -29,11 +31,14 @@ export interface AuthResult {
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     private readonly userRepository: UserRepository,
     private readonly passwordResetRepository: PasswordResetRepository,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    private readonly emailService: EmailService,
   ) {}
 
   async login(credentials: LoginDto): Promise<
@@ -173,8 +178,27 @@ export class AuthService {
       expiresAt,
     });
 
-    // TODO: Send email with reset link
-    console.log(`Password reset token for ${email}: ${token}`);
+    try {
+      const baseUrl = this.configService.get<string>(
+        'API_BASE_URL',
+        'http://localhost:3001',
+      );
+      const resetUrl = `${baseUrl}/reset-password?token=${token}`;
+
+      await this.emailService.sendPasswordResetEmail({
+        name: user.name,
+        email: user.email,
+        resetUrl,
+        resetToken: token,
+      });
+
+      this.logger.log(`Password reset email sent to: ${email}`);
+    } catch (error) {
+      this.logger.error(
+        `Failed to send password reset email to ${email}:`,
+        error,
+      );
+    }
   }
 
   async resetPassword(token: string, newPassword: string): Promise<void> {

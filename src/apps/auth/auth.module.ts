@@ -9,11 +9,13 @@ import { PasswordResetRepository } from './repositories/password-reset.repositor
 import { minsToMs } from 'src/shared';
 import { JwtStrategy } from 'src/apps/auth/guards/jwt.strategy';
 import { UserModule } from 'src/apps/user/user.module';
+import { EmailModule } from '../email/email.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([PasswordReset]),
     UserModule,
+    EmailModule,
     JwtModule.registerAsync({
       global: true,
       inject: [ConfigService],

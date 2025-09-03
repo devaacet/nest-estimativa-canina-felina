@@ -23,7 +23,6 @@ async function adminUserSeed(userService: UserService) {
       cityIds: [],
       email: 'admin@petresearch.com',
       name: 'Administrador',
-      password: 'admin123',
       role: UserRole.ADMINISTRATOR,
     },
   );
