@@ -122,6 +122,7 @@ export class UserService {
     const { id } = await this.userRepository.create({
       email: dto.email,
       name: dto.name,
+      phone: dto.phone,
       institution: dto.institution,
       passwordHash: hashedPassword,
       role: dto.role,
@@ -202,6 +203,7 @@ export class UserService {
       id: user.id,
       name: user.name,
       email: user.email,
+      phone: user.phone,
       institution: user.institution,
       role: user.role,
       active: user.active,
@@ -224,6 +226,7 @@ export class UserService {
     await this.userRepository.update(id, {
       email: dto.email,
       name: dto.name,
+      phone: dto.phone,
       institution: dto.institution,
       role: dto.role,
       active: dto.active,
@@ -235,11 +238,30 @@ export class UserService {
   async delete(user: CurrentUserDto, id: string): Promise<void> {
     if (user.id === id) {
       throw new BadRequestException(
-        'Você não pode acessar seu próprio usuário',
+        'Você não pode remover seu próprio usuário',
       );
     }
     await this.checkIfCurrentUserHasAccessToUser(user, id);
     await this.userRepository.delete(id);
+  }
+
+  async toggleStatus(user: CurrentUserDto, id: string): Promise<void> {
+    if (user.id === id) {
+      throw new BadRequestException(
+        'Você não pode alterar o status do seu próprio usuário',
+      );
+    }
+
+    const targetUser = await this.userRepository.findById(id);
+    if (!targetUser) {
+      throw new BadRequestException('Usuário não encontrado');
+    }
+
+    await this.checkIfCurrentUserHasAccessToUser(user, id, targetUser);
+
+    await this.userRepository.update(id, {
+      active: !targetUser.active,
+    });
   }
 
   async findOneByEmail(email: string): Promise<User | null> {

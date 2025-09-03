@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { UserRole } from '../../../../shared/enums';
 
 export class UserResponseDto {
@@ -19,6 +19,9 @@ export class UserResponseDto {
     example: 'João Silva',
   })
   name: string;
+
+  @ApiPropertyOptional()
+  phone?: string;
 
   @ApiProperty({
     description: 'User role in the system',

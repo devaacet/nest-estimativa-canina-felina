@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  Patch,
   Post,
   Put,
   Query,
@@ -76,6 +77,18 @@ export class UserController {
   @ApiOperation({ summary: 'Deletar usuário' })
   async delete(@CurrentUser() user: CurrentUserDto, @Param('id') id: string) {
     await this.userService.delete(user, id);
+
+    return;
+  }
+
+  @Patch(':id/toggle-status')
+  @Roles(UserRole.ADMINISTRATOR, UserRole.MANAGER)
+  @ApiOperation({ summary: 'Alternar status ativo/inativo do usuário' })
+  async toggleStatus(
+    @CurrentUser() user: CurrentUserDto,
+    @Param('id') id: string,
+  ) {
+    await this.userService.toggleStatus(user, id);
 
     return;
   }
