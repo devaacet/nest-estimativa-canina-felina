@@ -9,7 +9,6 @@ import { CurrentUserDto, PaginatedDataDto } from 'src/shared';
 import { CityRepository } from '../city/repositories/city.repository';
 import { hashPassword } from 'src/shared/utils';
 import { City } from 'src/apps/city/entities/city.entity';
-import { randomBytes } from 'crypto';
 import { EmailService } from '../email/email.service';
 
 @Injectable()
@@ -104,7 +103,29 @@ export class UserService {
   }
 
   private generateRandomPassword(): string {
-    return randomBytes(32).toString('hex');
+    const lowercase = 'abcdefghijklmnopqrstuvwxyz';
+    const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const numbers = '0123456789';
+    const symbols = '!@#$*';
+
+    // Garantir pelo menos 1 de cada tipo obrigatório
+    let password = '';
+    password += lowercase[Math.floor(Math.random() * lowercase.length)]; // 1 minúscula
+    password += uppercase[Math.floor(Math.random() * uppercase.length)]; // 1 maiúscula
+    password += numbers[Math.floor(Math.random() * numbers.length)]; // 1 número
+    password += symbols[Math.floor(Math.random() * symbols.length)]; // 1 símbolo
+
+    // Completar até 12 caracteres com caracteres aleatórios
+    const allChars = lowercase + uppercase + numbers + symbols;
+    for (let i = password.length; i < 12; i++) {
+      password += allChars[Math.floor(Math.random() * allChars.length)];
+    }
+
+    // Embaralhar a senha para que os tipos obrigatórios não fiquem sempre no início
+    return password
+      .split('')
+      .sort(() => Math.random() - 0.5)
+      .join('');
   }
 
   async register(
