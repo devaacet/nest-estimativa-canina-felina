@@ -83,7 +83,7 @@ export class UserRepository {
 
   async findByEmailWithPasswordHash(email: string): Promise<User | null> {
     return this.userRepository.findOne({
-      where: { email },
+      where: { email, active: true },
       relations: ['cities'],
       select: [
         'id',
