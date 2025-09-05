@@ -31,7 +31,7 @@ export class CurrentAnimalForm {
   formId: string;
 
   @Column({ name: 'animal_name', type: 'varchar', length: 255, nullable: true })
-  name: string;
+  name?: string;
 
   @Column({
     name: 'animal_species',
@@ -46,13 +46,13 @@ export class CurrentAnimalForm {
     enum: AnimalGender,
     nullable: true,
   })
-  gender: AnimalGender;
+  gender?: AnimalGender;
 
   @Column({ name: 'age_months', type: 'integer', nullable: true })
-  ageMonths: number;
+  ageMonths?: number;
 
   @Column({ name: 'age_years', type: 'integer', nullable: true })
-  ageYears: number;
+  ageYears?: number;
 
   @Column({
     name: 'castration_status',
@@ -64,11 +64,11 @@ export class CurrentAnimalForm {
 
   @Column({
     name: 'castration_reason',
-    type: 'enum',
-    enum: CastrationReason,
+    type: 'text',
+    array: true,
     nullable: true,
   })
-  castrationReason: CastrationReason;
+  castrationReason?: CastrationReason[];
 
   @Column({ name: 'interested_castration', type: 'boolean', nullable: true })
   interestedCastration: boolean;
@@ -78,11 +78,11 @@ export class CurrentAnimalForm {
 
   @Column({
     name: 'vaccination_reason',
-    type: 'enum',
-    enum: VaccinationReason,
+    type: 'text',
+    array: true,
     nullable: true,
   })
-  vaccinationReason: VaccinationReason;
+  vaccinationReason?: VaccinationReason[];
 
   @Column({
     name: 'street_access_unaccompanied',
@@ -97,7 +97,7 @@ export class CurrentAnimalForm {
     enum: AcquisitionMethod,
     nullable: true,
   })
-  acquisitionMethod: AcquisitionMethod;
+  acquisitionMethod?: AcquisitionMethod;
 
   @Column({
     name: 'acquisition_time',
@@ -105,7 +105,7 @@ export class CurrentAnimalForm {
     enum: AcquisitionTime,
     nullable: true,
   })
-  acquisitionTime: AcquisitionTime;
+  acquisitionTime?: AcquisitionTime;
 
   @Column({
     name: 'acquisition_state',
@@ -113,7 +113,7 @@ export class CurrentAnimalForm {
     length: 100,
     nullable: true,
   })
-  acquisitionState: string;
+  acquisitionState?: string;
 
   @Column({
     name: 'acquisition_city',
@@ -121,7 +121,7 @@ export class CurrentAnimalForm {
     length: 200,
     nullable: true,
   })
-  acquisitionCity: string;
+  acquisitionCity?: string;
 
   @Column({
     name: 'housing_methods',
@@ -129,7 +129,7 @@ export class CurrentAnimalForm {
     array: true,
     nullable: true,
   })
-  housingMethods: AnimalHousing[]; // Array of housing methods
+  housingMethods?: AnimalHousing[]; // Array of housing methods
 
   @Column({
     name: 'animal_breed',
@@ -137,7 +137,7 @@ export class CurrentAnimalForm {
     enum: AnimalBreed,
     nullable: true,
   })
-  animalBreed: AnimalBreed;
+  animalBreed?: AnimalBreed;
 
   @Column({ name: 'has_microchip', type: 'boolean', default: false })
   hasMicrochip: boolean;
@@ -153,7 +153,7 @@ export class CurrentAnimalForm {
   cardMinimized: boolean;
 
   @Column({ name: 'additional_data', type: 'jsonb', nullable: true })
-  additionalData: any;
+  additionalData?: any;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;

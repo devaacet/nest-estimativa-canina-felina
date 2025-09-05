@@ -87,13 +87,11 @@ export enum AnimalCondition {
 
 export enum CastrationStatus {
   NO = 'no',
-  YES = 'yes',
   YES_MORE_THAN_YEAR = 'yes_more_than_year',
   YES_LESS_THAN_YEAR = 'yes_less_than_year',
 }
 
 export enum CastrationReason {
-  NOT_APPLICABLE = 'not_applicable',
   NEVER_THOUGHT = 'never_thought',
   COST = 'cost',
   LACK_TIME = 'lack_time',
@@ -102,7 +100,6 @@ export enum CastrationReason {
 }
 
 export enum VaccinationReason {
-  NOT_APPLICABLE = 'not_applicable',
   COST = 'cost',
   LACK_TIME = 'lack_time',
   NOT_NECESSARY = 'not_necessary',
@@ -162,7 +159,6 @@ export enum HypotheticalAcquisition {
 }
 
 export enum NoAnimalsReason {
-  NOT_APPLICABLE = 'not_applicable',
   NEVER_THOUGHT = 'never_thought',
   DONT_LIKE = 'dont_like',
   LIKE_NO_INTEREST = 'like_no_interest',

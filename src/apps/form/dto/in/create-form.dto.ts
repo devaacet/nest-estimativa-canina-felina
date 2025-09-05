@@ -211,25 +211,23 @@ export class CreateFormDto {
 
   // Step 6: Puppies and Kittens
   @ApiProperty({
-    description: 'Array of puppies/kittens information',
-    type: [CreatePuppiesKittensDto],
+    description: 'Puppies/kittens information',
+    type: CreatePuppiesKittensDto,
     required: false,
   })
   @IsOptional()
-  @IsArray()
-  @ValidateNested({ each: true })
+  @ValidateNested()
   @Type(() => CreatePuppiesKittensDto)
-  puppiesKittens?: CreatePuppiesKittensDto[];
+  puppiesKittens?: CreatePuppiesKittensDto;
 
   // Step 7: Animal Absence
   @ApiProperty({
-    description: 'Array of animal absence information',
-    type: [CreateAnimalAbsenceDto],
+    description: 'Animal absence information',
+    type: CreateAnimalAbsenceDto,
     required: false,
   })
   @IsOptional()
-  @IsArray()
-  @ValidateNested({ each: true })
+  @ValidateNested()
   @Type(() => CreateAnimalAbsenceDto)
-  animalAbsence?: CreateAnimalAbsenceDto[];
+  animalAbsence?: CreateAnimalAbsenceDto;
 }

@@ -3,7 +3,7 @@ import {
   CreateDateColumn,
   Entity,
   JoinColumn,
-  ManyToOne,
+  OneToOne,
   PrimaryGeneratedColumn,
   Unique,
   UpdateDateColumn,
@@ -16,7 +16,7 @@ import {
 import { Form } from './form.entity';
 
 @Entity('form_puppies_kittens')
-@Unique(['formId', 'registrationOrder'])
+@Unique(['formId'])
 export class PuppiesKittensForm {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -35,15 +35,15 @@ export class PuppiesKittensForm {
   puppyCount: number;
 
   @Column({ name: 'puppies_vaccinated', type: 'boolean', nullable: true })
-  puppiesVaccinated: boolean;
+  puppiesVaccinated?: boolean;
 
   @Column({
     name: 'vaccination_reason',
-    type: 'enum',
-    enum: VaccinationReason,
+    type: 'text',
+    array: true,
     nullable: true,
   })
-  vaccinationReason: VaccinationReason;
+  vaccinationReason?: VaccinationReason[];
 
   @Column({
     name: 'puppies_origin',
@@ -51,7 +51,7 @@ export class PuppiesKittensForm {
     enum: AcquisitionMethod,
     nullable: true,
   })
-  puppiesOrigin: AcquisitionMethod;
+  puppiesOrigin?: AcquisitionMethod;
 
   @Column({
     name: 'puppies_destiny',
@@ -59,17 +59,7 @@ export class PuppiesKittensForm {
     enum: AnimalDestiny,
     nullable: true,
   })
-  puppiesDestiny: AnimalDestiny;
-
-  // Metadata
-  @Column({ name: 'registration_order', type: 'integer' })
-  registrationOrder: number;
-
-  @Column({ name: 'card_minimized', type: 'boolean', default: false })
-  cardMinimized: boolean;
-
-  @Column({ name: 'additional_data', type: 'jsonb', nullable: true })
-  additionalData: any;
+  puppiesDestiny?: AnimalDestiny;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;
@@ -78,7 +68,7 @@ export class PuppiesKittensForm {
   updatedAt: Date;
 
   // Relationships
-  @ManyToOne(() => Form, (form) => form.puppiesKittens, {
+  @OneToOne(() => Form, (form) => form.puppiesKittens, {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'form_id' })

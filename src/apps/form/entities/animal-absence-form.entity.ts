@@ -3,7 +3,7 @@ import {
   CreateDateColumn,
   Entity,
   JoinColumn,
-  ManyToOne,
+  OneToOne,
   PrimaryGeneratedColumn,
   Unique,
   UpdateDateColumn,
@@ -31,10 +31,7 @@ export class AnimalAbsenceForm {
     enum: HypotheticalAcquisition,
     nullable: true,
   })
-  hypotheticalAcquisition: HypotheticalAcquisition;
-
-  @Column({ name: 'would_castrate', type: 'boolean', nullable: true })
-  wouldCastrate: boolean;
+  hypotheticalAcquisition?: HypotheticalAcquisition;
 
   @Column({
     name: 'castration_decision',
@@ -42,15 +39,15 @@ export class AnimalAbsenceForm {
     enum: CastrationDecision,
     nullable: true,
   })
-  castrationDecision: CastrationDecision;
+  castrationDecision?: CastrationDecision;
 
   @Column({
     name: 'no_castration_reason',
-    type: 'enum',
-    enum: CastrationReason,
+    type: 'text',
+    array: true,
     nullable: true,
   })
-  castrationReason: CastrationReason;
+  castrationReason?: CastrationReason[];
 
   @Column({
     name: 'no_animals_reasons',
@@ -58,7 +55,7 @@ export class AnimalAbsenceForm {
     array: true,
     nullable: true,
   })
-  noAnimalsReasons: NoAnimalsReason[]; // Array of reasons
+  noAnimalsReasons?: NoAnimalsReason[];
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;
@@ -67,7 +64,7 @@ export class AnimalAbsenceForm {
   updatedAt: Date;
 
   // Relationships
-  @ManyToOne(() => Form, (form) => form.animalAbsence, {
+  @OneToOne(() => Form, (form) => form.animalAbsence, {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'form_id' })

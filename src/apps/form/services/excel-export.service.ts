@@ -109,24 +109,21 @@ export class ExcelExportService {
       vaccinationReason: 'Razão para não vacinação',
       origin: 'Qual foi/é a origem?',
       destiny: 'Qual foi/será o destino?',
-      registrationOrder: 'Ordem de Cadastro',
     },
 
     // Animal absence headers (Step 7)
     animalAbsence: {
       formId: 'ID do Formulário',
       howWouldAcquire: 'Se você decidisse ter um animal, como faria?',
-      wouldCastrate: 'Se você tivesse um cão/gato, optaria pela castração',
+      castrationDecision: 'Se você tivesse um cão/gato, optaria pela castração',
       castrationReason: 'Razão para não castração',
       reasonForNotHaving: 'Qual o motivo de não ter animais?',
-      registrationOrder: 'Ordem de Cadastro',
     },
 
     // City questions headers (Step 8)
     cityQuestions: {
       formId: 'ID do Formulário',
       questionText: 'Pergunta',
-      questionType: 'Tipo de Pergunta',
       responseText: 'Resposta',
       isRequired: 'Obrigatória',
     },
@@ -155,6 +152,11 @@ export class ExcelExportService {
     [Enums.EducationLevel.HIGH_SCHOOL]: 'Médio',
     [Enums.EducationLevel.HIGHER]: 'Superior',
     [Enums.EducationLevel.TECHNICAL]: 'Técnico',
+
+    // CastrationDecision
+    [Enums.CastrationDecision.YES]: 'Sim',
+    [Enums.CastrationDecision.NO]: 'Não',
+    [Enums.CastrationDecision.DONT_KNOW]: 'Não sei',
 
     // HousingType
     [Enums.HousingType.OWNED]: 'Própria',
@@ -188,13 +190,10 @@ export class ExcelExportService {
     [Enums.AnimalCondition.INJURED]: 'ferido',
 
     // CastrationStatus
-    [Enums.CastrationStatus.NO]: 'Não',
-    [Enums.CastrationStatus.YES]: 'Sim',
     [Enums.CastrationStatus.YES_MORE_THAN_YEAR]: 'Sim, mais de um ano',
     [Enums.CastrationStatus.YES_LESS_THAN_YEAR]: 'Sim, menos de um ano',
 
     // CastrationReason
-    [Enums.CastrationReason.NOT_APPLICABLE]: 'Não se aplica',
     [Enums.CastrationReason.NEVER_THOUGHT]: 'Nunca pensou sobre o assunto',
     [Enums.CastrationReason.COST]: 'Custo da castração',
     [Enums.CastrationReason.LACK_TIME]: 'Falta de tempo',
@@ -329,7 +328,7 @@ export class ExcelExportService {
         this.translateEnum(form.strayAnimalsSpecies),
         this.translateEnum(form.strayAnimalsCondition),
         this.formatBoolean(form.caresStreetAnimals),
-        form.careTypes || '',
+        this.formatArray(form.careTypes),
         this.translateEnum(form.vetFrequency),
         form.monthlyVetCost || '',
         this.formatBoolean(form.communityAnimals),
@@ -372,16 +371,16 @@ export class ExcelExportService {
             animal.ageMonths || '',
             animal.ageYears || '',
             this.translateEnum(animal.castrationStatus),
-            this.translateEnum(animal.castrationReason),
+            this.translateEnumArray(animal.castrationReason),
             this.formatBoolean(animal.interestedCastration),
             this.formatBoolean(animal.isVaccinated),
-            this.translateEnum(animal.vaccinationReason),
+            this.translateEnumArray(animal.vaccinationReason),
             this.formatBoolean(animal.streetAccessUnaccompanied),
             this.translateEnum(animal.acquisitionMethod),
             this.translateEnum(animal.acquisitionTime),
             animal.acquisitionState || '',
             animal.acquisitionCity || '',
-            animal.housingMethods || '',
+            this.formatArray(animal.housingMethods),
             this.translateEnum(animal.animalBreed),
             this.formatBoolean(animal.hasMicrochip),
             this.formatBoolean(animal.interestedMicrochip),
@@ -419,9 +418,9 @@ export class ExcelExportService {
             animal.ageMonths || '',
             animal.ageYears || '',
             this.translateEnum(animal.castrated),
-            this.translateEnum(animal.castrationReason),
+            this.translateEnumArray(animal.castrationReason),
             this.formatBoolean(animal.isVaccinated),
-            this.translateEnum(animal.vaccinationReason),
+            this.translateEnumArray(animal.vaccinationReason),
             this.translateEnum(animal.acquisitionMethod),
             this.translateEnum(animal.destiny),
             animal.registrationOrder,
@@ -448,21 +447,19 @@ export class ExcelExportService {
 
     // Add data rows
     forms.forEach((form) => {
-      if (form.puppiesKittens?.length > 0) {
-        form.puppiesKittens.forEach((puppies) => {
-          const row = [
-            form.id,
-            this.formatBoolean(puppies.hadPuppiesLast12Months),
-            puppies.puppyCount || '',
-            this.formatBoolean(puppies.puppiesVaccinated),
-            this.translateEnum(puppies.vaccinationReason),
-            this.translateEnum(puppies.puppiesOrigin),
-            this.translateEnum(puppies.puppiesDestiny),
-            puppies.registrationOrder,
-          ];
+      if (form.puppiesKittens) {
+        const puppies = form.puppiesKittens;
+        const row = [
+          form.id,
+          this.formatBoolean(puppies.hadPuppiesLast12Months),
+          puppies.puppyCount || '',
+          this.formatBoolean(puppies.puppiesVaccinated),
+          this.translateEnumArray(puppies.vaccinationReason),
+          this.translateEnum(puppies.puppiesOrigin),
+          this.translateEnum(puppies.puppiesDestiny),
+        ];
 
-          worksheet.addRow(row);
-        });
+        worksheet.addRow(row);
       }
     });
 
@@ -482,19 +479,17 @@ export class ExcelExportService {
 
     // Add data rows
     forms.forEach((form) => {
-      if (form.animalAbsence?.length > 0) {
-        form.animalAbsence.forEach((absence) => {
-          const row = [
-            form.id,
-            this.translateEnum(absence.hypotheticalAcquisition),
-            this.formatBoolean(absence.wouldCastrate),
-            this.translateEnum(absence.castrationReason),
-            absence.noAnimalsReasons || '', // This is array, may need special handling
-            1, // registration_order doesn't exist for this entity, use default
-          ];
+      if (form.animalAbsence) {
+        const absence = form.animalAbsence;
+        const row = [
+          form.id,
+          this.translateEnum(absence.hypotheticalAcquisition),
+          this.translateEnum(absence.castrationDecision),
+          this.translateEnumArray(absence.castrationReason),
+          this.formatArray(absence.noAnimalsReasons), // This is array, may need special handling
+        ];
 
-          worksheet.addRow(row);
-        });
+        worksheet.addRow(row);
       }
     });
 
@@ -519,7 +514,6 @@ export class ExcelExportService {
           const row = [
             form.id,
             response.question?.questionText || '',
-            'text', // Default type since CityQuestion doesn't have questionType field
             response.responseText || '',
             this.formatBoolean(response.question?.required),
           ];
@@ -563,7 +557,7 @@ export class ExcelExportService {
     });
   }
 
-  private formatDate(date: Date | string | null | undefined): string {
+  private formatDate(date?: Date | string): string {
     if (!date) return '';
 
     try {
@@ -574,13 +568,25 @@ export class ExcelExportService {
     }
   }
 
-  private formatBoolean(value: boolean | null | undefined): string {
+  private formatBoolean(value?: boolean): string {
     if (value === null || value === undefined) return '';
     return value ? 'Sim' : 'Não';
   }
 
-  private translateEnum(value: string | null | undefined): string {
+  private translateEnum(value?: string): string {
     if (!value) return '';
     return this.ENUM_TRANSLATIONS[value] || value;
+  }
+
+  private translateEnumArray(values?: Array<string>): string {
+    if (!values) return '';
+    return values
+      .map((value) => this.ENUM_TRANSLATIONS[value] || value)
+      .join('; ');
+  }
+
+  private formatArray(value?: Array<string>): string {
+    if (!value) return '';
+    return value.join('; ');
   }
 }

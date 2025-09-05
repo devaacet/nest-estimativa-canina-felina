@@ -5,6 +5,7 @@ import {
   JoinColumn,
   ManyToOne,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -216,11 +217,11 @@ export class Form {
   @OneToMany(() => PreviousAnimalForm, (animal) => animal.form)
   previousAnimals: PreviousAnimalForm[];
 
-  @OneToMany(() => PuppiesKittensForm, (puppies) => puppies.form)
-  puppiesKittens: PuppiesKittensForm[];
+  @OneToOne(() => PuppiesKittensForm, (puppies) => puppies.form)
+  puppiesKittens: PuppiesKittensForm;
 
-  @OneToMany(() => AnimalAbsenceForm, (absence) => absence.form)
-  animalAbsence: AnimalAbsenceForm[];
+  @OneToOne(() => AnimalAbsenceForm, (absence) => absence.form)
+  animalAbsence: AnimalAbsenceForm;
 
   @OneToMany(() => FormQuestionResponse, (response) => response.form)
   questionResponses: FormQuestionResponse[];

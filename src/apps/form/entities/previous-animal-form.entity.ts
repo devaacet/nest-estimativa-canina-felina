@@ -29,7 +29,7 @@ export class PreviousAnimalForm {
   formId: string;
 
   @Column({ name: 'animal_name', type: 'varchar', length: 255, nullable: true })
-  name: string;
+  name?: string;
 
   @Column({
     name: 'animal_species',
@@ -47,10 +47,10 @@ export class PreviousAnimalForm {
   gender: AnimalGender;
 
   @Column({ name: 'age_months', type: 'integer', nullable: true })
-  ageMonths: number;
+  ageMonths?: number;
 
   @Column({ name: 'age_years', type: 'integer', nullable: true })
-  ageYears: number;
+  ageYears?: number;
 
   @Column({
     name: 'castration_status',
@@ -62,22 +62,22 @@ export class PreviousAnimalForm {
 
   @Column({
     name: 'castration_reason',
-    type: 'enum',
-    enum: CastrationReason,
+    type: 'text',
     nullable: true,
+    array: true,
   })
-  castrationReason: CastrationReason;
+  castrationReason?: CastrationReason[];
 
   @Column({ name: 'is_vaccinated', type: 'boolean', default: false })
   isVaccinated: boolean;
 
   @Column({
     name: 'vaccination_reason',
-    type: 'enum',
-    enum: VaccinationReason,
+    type: 'text',
     nullable: true,
+    array: true,
   })
-  vaccinationReason: VaccinationReason;
+  vaccinationReason?: VaccinationReason[];
 
   @Column({
     name: 'acquisition_method',
@@ -85,7 +85,7 @@ export class PreviousAnimalForm {
     enum: AcquisitionMethod,
     nullable: true,
   })
-  acquisitionMethod: AcquisitionMethod;
+  acquisitionMethod?: AcquisitionMethod;
 
   @Column({
     name: 'animal_destiny',
@@ -102,7 +102,7 @@ export class PreviousAnimalForm {
   cardMinimized: boolean;
 
   @Column({ name: 'additional_data', type: 'jsonb', nullable: true })
-  additionalData: any;
+  additionalData?: any;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;

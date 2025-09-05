@@ -110,31 +110,30 @@ export class FormService {
           }
         }
 
-        // Handle puppies and kittens
+        // Handle puppies and kittens - single object
         if (puppiesKittens) {
           await manager.delete(PuppiesKittensForm, { formId: id });
 
-          for (let i = 0; i < puppiesKittens.length; i++) {
-            const puppies = manager.create(PuppiesKittensForm, {
-              ...puppiesKittens[i],
-              formId: id,
-              registrationOrder: i + 1,
-            });
-            await manager.save(PuppiesKittensForm, puppies);
-          }
+          const puppies = manager.create(PuppiesKittensForm, {
+            ...puppiesKittens,
+            formId: id,
+            registrationOrder: 1,
+          });
+          await manager.save(PuppiesKittensForm, puppies);
         }
 
-        // Handle animal absence
+        // Handle animal absence - single object
         if (animalAbsence) {
           await manager.delete(AnimalAbsenceForm, { formId: id });
 
-          for (const absence of animalAbsence) {
-            const absenceEntity = manager.create(AnimalAbsenceForm, {
-              ...absence,
-              formId: id,
-            });
-            await manager.save(AnimalAbsenceForm, absenceEntity);
-          }
+          const absenceEntity = manager.create(AnimalAbsenceForm, {
+            castrationDecision: animalAbsence.castrationDecision,
+            castrationReason: animalAbsence.castrationReason,
+            hypotheticalAcquisition: animalAbsence.hypotheticalAcquisition,
+            noAnimalsReasons: animalAbsence.noAnimalsReasons,
+            formId: id,
+          });
+          await manager.save(AnimalAbsenceForm, absenceEntity);
         }
       } else {
         // Create new form
@@ -184,24 +183,23 @@ export class FormService {
         }
 
         if (puppiesKittens) {
-          for (let i = 0; i < puppiesKittens.length; i++) {
-            const puppies = manager.create(PuppiesKittensForm, {
-              ...puppiesKittens[i],
-              formId: id,
-              registrationOrder: i + 1,
-            });
-            await manager.save(PuppiesKittensForm, puppies);
-          }
+          const puppies = manager.create(PuppiesKittensForm, {
+            ...puppiesKittens,
+            formId: id,
+            registrationOrder: 1,
+          });
+          await manager.save(PuppiesKittensForm, puppies);
         }
 
         if (animalAbsence) {
-          for (const absence of animalAbsence) {
-            const absenceEntity = manager.create(AnimalAbsenceForm, {
-              ...absence,
-              formId: id,
-            });
-            await manager.save(AnimalAbsenceForm, absenceEntity);
-          }
+          const absenceEntity = manager.create(AnimalAbsenceForm, {
+            castrationDecision: animalAbsence.castrationDecision,
+            castrationReason: animalAbsence.castrationReason,
+            hypotheticalAcquisition: animalAbsence.hypotheticalAcquisition,
+            noAnimalsReasons: animalAbsence.noAnimalsReasons,
+            formId: id,
+          });
+          await manager.save(AnimalAbsenceForm, absenceEntity);
         }
       }
 
@@ -241,6 +239,8 @@ export class FormService {
     if (!form) {
       throw new NotFoundException(`Form with ID "${id}" not found`);
     }
+
+    if (form.status !== FormStatus.DRAFT) form.currentStep = 1;
     return form;
   }
 
@@ -430,62 +430,36 @@ export class FormService {
       }>;
     };
   }> {
-    // Determinar período padrão se não fornecido (últimos 30 dias)
     const endDate = dateRange?.endDate || new Date();
     const startDate =
-      dateRange?.startDate || new Date(Date.now() - 700 * 24 * 60 * 60 * 1000);
+      dateRange?.startDate || new Date(Date.now() - 29 * 24 * 60 * 60 * 1000);
 
-    // Buscar cidades que o usuário tem acesso
-    let userCityIds: string[] = [];
-
-    if (user.role === UserRole.ADMINISTRATOR) {
-      userCityIds = cityIds ?? [];
-    } else {
-      // Para usuários não-admin, sempre validar acesso
-      const userAccessibleCities =
-        await this.cityService.findCitiesForUser(user);
-      const userAccessibleCityIds = userAccessibleCities.map((city) => city.id);
-
-      if (cityIds && cityIds.length > 0) {
-        // Filtrar apenas as cidades que o usuário tem acesso
-        userCityIds = cityIds.filter((cityId) =>
-          userAccessibleCityIds.includes(cityId),
-        );
-
-        // Se nenhuma cidade válida foi fornecida, usar todas as cidades do usuário
-        if (userCityIds.length === 0) {
-          userCityIds = userAccessibleCityIds;
-        }
-      } else {
-        // Se não foi fornecido cityIds, usar todas as cidades que o usuário tem acesso
-        userCityIds = userAccessibleCityIds;
-      }
-    }
+    const accessibleCityIds = await this.getCityIdsFilter(user, cityIds);
 
     // Calcular diferença para agrupamento
     const daysDiff = Math.ceil(
-      (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24),
+      (endDate.getTime() - startDate.getTime()) / (7 * 60 * 60 * 24),
     );
     const weeksDiff = Math.ceil(daysDiff / 7);
 
     let groupBy: 'day' | 'week' | 'month' = 'day';
-    if (daysDiff > 14) groupBy = 'week';
+    if (daysDiff > 30) groupBy = 'week';
     if (weeksDiff > 8) groupBy = 'month';
 
     // Buscar dados do repositório
-    const kpisData = await this.formRepository.getKpisData(userCityIds, {
+    const kpisData = await this.formRepository.getKpisData(accessibleCityIds, {
       startDate,
       endDate,
     });
     const timelineData = await this.formRepository.getCompletedFormsTimeline(
-      userCityIds,
+      accessibleCityIds,
       { startDate, endDate },
       groupBy,
     );
 
     // Contar cidades ativas (que têm formulários no período)
     const activeCities = await this.formRepository.getActiveCitiesCount(
-      userCityIds,
+      accessibleCityIds,
       { startDate, endDate },
     );
 
@@ -501,7 +475,11 @@ export class FormService {
   }
 
   private transformToListResponse(this: void, form: Form): FormListResponseDto {
-    const progress = (form.currentStep / 8) * 100;
+    let progress = (form.currentStep / 8) * 100;
+
+    if (form.status !== FormStatus.DRAFT) {
+      progress = 100;
+    }
 
     return {
       id: form.id,
