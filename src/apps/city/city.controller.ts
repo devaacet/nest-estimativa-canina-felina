@@ -13,6 +13,7 @@ import { CityService } from './city.service';
 import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CreateCityDto, UpdateCityDto } from './dto/in';
 import { CurrentUser, Roles, UserRole } from 'src/shared';
+import { MESSAGES } from 'src/shared/constants/messages';
 import type { CurrentUserDto, PaginatedDataDto } from 'src/shared';
 import JwtAuthGuard from 'src/apps/auth/guards/jwt-auth.guard';
 import {
@@ -91,7 +92,12 @@ export class CityController {
     @CurrentUser() user: CurrentUserDto,
     @Body() cityData: CreateCityDto,
   ) {
-    await this.cityService.createCity(cityData);
+    const result = await this.cityService.createCity(cityData);
+    return {
+      success: true,
+      data: result,
+      messages: [`${MESSAGES.ENTITIES.CITY} ${MESSAGES.SUCCESS.CREATED}`],
+    };
   }
 
   @Put(':id')
@@ -105,6 +111,11 @@ export class CityController {
     @Body() cityData: UpdateCityDto,
   ) {
     await this.cityService.updateCity(id, cityData);
+    return {
+      success: true,
+      data: null,
+      messages: [`${MESSAGES.ENTITIES.CITY} ${MESSAGES.SUCCESS.UPDATED}`],
+    };
   }
 
   @Delete(':id')
@@ -117,6 +128,11 @@ export class CityController {
     @Param('id') id: string,
   ) {
     await this.cityService.deleteCity(id);
+    return {
+      success: true,
+      data: null,
+      messages: [`${MESSAGES.ENTITIES.CITY} ${MESSAGES.SUCCESS.DELETED}`],
+    };
   }
 
   @Put(':id/toggle-status')
@@ -125,6 +141,13 @@ export class CityController {
   @ApiResponse({ status: 200, description: 'City status updated successfully' })
   async toggleCityStatus(@Param('id') id: string) {
     await this.cityService.toggleCityStatus(id);
+    return {
+      success: true,
+      data: null,
+      messages: [
+        `${MESSAGES.ENTITIES.CITY} ${MESSAGES.SUCCESS.STATUS_UPDATED}`,
+      ],
+    };
   }
 
   // City Questions endpoints

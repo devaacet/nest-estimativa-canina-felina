@@ -15,6 +15,7 @@ import {
   ValidationErrorResponseDto,
   ValidationFieldErrorDto,
 } from '../dto';
+import { MESSAGES } from '../constants/messages';
 
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
@@ -139,7 +140,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
     return ResponseBuilder.validationError(
       validationErrors,
-      ['Validation failed'],
+      [MESSAGES.ERROR.VALIDATION_FAILED],
       metadata,
     );
   }
@@ -151,7 +152,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     exception: QueryFailedError,
     metadata: any,
   ): ErrorResponseDto {
-    let message = 'Database operation failed';
+    let message: string = MESSAGES.ERROR.DATABASE_ERROR;
     let code = 'DATABASE_ERROR';
     const details: Record<string, unknown> = {
       query: exception.query,
@@ -160,13 +161,13 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
     // Handle specific database errors
     if (exception.message.includes('duplicate key')) {
-      message = 'Resource already exists';
+      message = MESSAGES.ERROR.DUPLICATE_ENTRY;
       code = 'DUPLICATE_ENTRY';
     } else if (exception.message.includes('foreign key constraint')) {
-      message = 'Referenced resource not found';
+      message = MESSAGES.ERROR.FOREIGN_KEY_VIOLATION;
       code = 'FOREIGN_KEY_VIOLATION';
     } else if (exception.message.includes('not null constraint')) {
-      message = 'Required field is missing';
+      message = MESSAGES.ERROR.NOT_NULL_VIOLATION;
       code = 'NOT_NULL_VIOLATION';
     }
 
@@ -185,7 +186,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         field: error.property,
         message: error.constraints
           ? Object.values(error.constraints).join(', ')
-          : 'Validation failed',
+          : MESSAGES.ERROR.VALIDATION_FAILED,
         value: error.value,
         constraints: error.constraints ? Object.keys(error.constraints) : [],
       }),
@@ -193,7 +194,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
     return ResponseBuilder.validationError(
       validationErrors,
-      ['Validation failed'],
+      [MESSAGES.ERROR.VALIDATION_FAILED],
       metadata,
     );
   }
@@ -208,7 +209,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     const message =
       exception instanceof Error
         ? exception.message
-        : 'An unexpected error occurred';
+        : MESSAGES.ERROR.INTERNAL_SERVER_ERROR;
 
     const details: Record<string, unknown> = {};
 
@@ -240,31 +241,21 @@ export class GlobalExceptionFilter implements ExceptionFilter {
   /**
    * Get error code from HTTP status
    */
-  private getErrorCodeFromStatus(status: number): string {
-    switch (status) {
-      case HttpStatus.BAD_REQUEST:
-        return 'BAD_REQUEST';
-      case HttpStatus.UNAUTHORIZED:
-        return 'UNAUTHORIZED';
-      case HttpStatus.FORBIDDEN:
-        return 'FORBIDDEN';
-      case HttpStatus.NOT_FOUND:
-        return 'NOT_FOUND';
-      case HttpStatus.CONFLICT:
-        return 'CONFLICT';
-      case HttpStatus.UNPROCESSABLE_ENTITY:
-        return 'UNPROCESSABLE_ENTITY';
-      case HttpStatus.TOO_MANY_REQUESTS:
-        return 'TOO_MANY_REQUESTS';
-      case HttpStatus.INTERNAL_SERVER_ERROR:
-        return 'INTERNAL_SERVER_ERROR';
-      case HttpStatus.BAD_GATEWAY:
-        return 'BAD_GATEWAY';
-      case HttpStatus.SERVICE_UNAVAILABLE:
-        return 'SERVICE_UNAVAILABLE';
-      default:
-        return `HTTP_${status}`;
-    }
+  private getErrorCodeFromStatus(status: HttpStatus): string {
+    const statusDescription: Record<number, string> = {
+      [HttpStatus.BAD_REQUEST]: 'BAD_REQUEST',
+      [HttpStatus.UNAUTHORIZED]: 'UNAUTHORIZED',
+      [HttpStatus.FORBIDDEN]: 'FORBIDDEN',
+      [HttpStatus.NOT_FOUND]: 'NOT_FOUND',
+      [HttpStatus.CONFLICT]: 'CONFLICT',
+      [HttpStatus.UNPROCESSABLE_ENTITY]: 'UNPROCESSABLE_ENTITY',
+      [HttpStatus.TOO_MANY_REQUESTS]: 'TOO_MANY_REQUESTS',
+      [HttpStatus.INTERNAL_SERVER_ERROR]: 'INTERNAL_SERVER_ERROR',
+      [HttpStatus.BAD_GATEWAY]: 'BAD_GATEWAY',
+      [HttpStatus.SERVICE_UNAVAILABLE]: 'SERVICE_UNAVAILABLE',
+    };
+
+    return statusDescription[status] ?? `HTTP_${status}`;
   }
 
   /**

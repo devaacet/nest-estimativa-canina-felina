@@ -22,6 +22,7 @@ import {
   daysToMs,
   minsToMs,
 } from 'src/shared';
+import { MESSAGES } from 'src/shared/constants/messages';
 import { ConfigService } from '@nestjs/config';
 
 @ApiTags('Authentication')
@@ -63,6 +64,7 @@ export class AuthController {
       data: {
         user: result.user,
       },
+      messages: [MESSAGES.SUCCESS.LOGIN_SUCCESS],
     });
   }
 
@@ -73,7 +75,7 @@ export class AuthController {
     if (!refreshToken) {
       return res.status(HttpStatus.UNAUTHORIZED).json({
         success: false,
-        error: 'Refresh token not provided',
+        error: 'Token de atualização não fornecido',
       });
     }
 
@@ -104,6 +106,7 @@ export class AuthController {
       data: {
         user: result.user,
       },
+      messages: [MESSAGES.SUCCESS.TOKEN_REFRESHED],
     });
   }
 
@@ -128,6 +131,7 @@ export class AuthController {
       data: {
         loggedOut: true,
       },
+      messages: [MESSAGES.SUCCESS.LOGOUT_SUCCESS],
     });
   }
 
@@ -148,6 +152,7 @@ export class AuthController {
         message:
           'Se o e-mail estiver cadastrado, você receberá instruções para redefinir sua senha.',
       },
+      messages: [MESSAGES.SUCCESS.PASSWORD_RESET_REQUEST_SENT],
     };
   }
 
@@ -171,6 +176,7 @@ export class AuthController {
       data: {
         message: 'Senha redefinida com sucesso.',
       },
+      messages: [MESSAGES.SUCCESS.PASSWORD_RESET_SUCCESS],
     };
   }
 }

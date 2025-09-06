@@ -38,9 +38,6 @@ export class CityRepository {
     // Filter by active status if provided
     if (active !== undefined) {
       queryBuilder.andWhere('city.active = :active', { active });
-    } else {
-      // Default to active only
-      queryBuilder.andWhere('city.active = true');
     }
 
     // Filter by year if provided

@@ -4,7 +4,9 @@
       "Bash(mkdir:*)",
       "Bash(mv:*)",
       "Bash(npm run build:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(cat:*)",
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": [],

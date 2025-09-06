@@ -14,8 +14,8 @@ import { UserService } from './user.service';
 import { ApiOperation, ApiQuery } from '@nestjs/swagger';
 import { RegisterUserDto, UpdateUserDto } from './dto/in';
 import { CurrentUser, Roles, UserRole } from 'src/shared';
+import { MESSAGES } from 'src/shared/constants/messages';
 import type { CurrentUserDto, PaginatedDataDto } from 'src/shared';
-import { User } from 'src/apps/user/entities/user.entity';
 import { UserResponseDto } from 'src/apps/user/dto/out';
 import JwtAuthGuard from 'src/apps/auth/guards/jwt-auth.guard';
 
@@ -55,8 +55,13 @@ export class UserController {
   async register(
     @CurrentUser() user: CurrentUserDto,
     @Body() dto: RegisterUserDto,
-  ): Promise<Partial<User>> {
-    return this.userService.register(user, dto);
+  ) {
+    const result = await this.userService.register(user, dto);
+    return {
+      success: true,
+      data: result,
+      messages: [`${MESSAGES.ENTITIES.USER} ${MESSAGES.SUCCESS.CREATED}`],
+    };
   }
 
   @Put(':id')
@@ -68,8 +73,11 @@ export class UserController {
     @Body() dto: UpdateUserDto,
   ) {
     await this.userService.update(user, id, dto);
-
-    return;
+    return {
+      success: true,
+      data: null,
+      messages: [`${MESSAGES.ENTITIES.USER} ${MESSAGES.SUCCESS.UPDATED}`],
+    };
   }
 
   @Delete(':id')
@@ -77,8 +85,11 @@ export class UserController {
   @ApiOperation({ summary: 'Deletar usuário' })
   async delete(@CurrentUser() user: CurrentUserDto, @Param('id') id: string) {
     await this.userService.delete(user, id);
-
-    return;
+    return {
+      success: true,
+      data: null,
+      messages: [`${MESSAGES.ENTITIES.USER} ${MESSAGES.SUCCESS.DELETED}`],
+    };
   }
 
   @Patch(':id/toggle-status')
@@ -89,7 +100,12 @@ export class UserController {
     @Param('id') id: string,
   ) {
     await this.userService.toggleStatus(user, id);
-
-    return;
+    return {
+      success: true,
+      data: null,
+      messages: [
+        `${MESSAGES.ENTITIES.USER} ${MESSAGES.SUCCESS.STATUS_UPDATED}`,
+      ],
+    };
   }
 }

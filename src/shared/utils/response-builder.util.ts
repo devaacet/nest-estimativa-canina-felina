@@ -9,6 +9,7 @@ import {
   ValidationErrorResponseDto,
   ValidationFieldErrorDto,
 } from '../dto';
+import { MESSAGES } from '../constants/messages';
 
 export class ResponseBuilder {
   /**
@@ -16,7 +17,7 @@ export class ResponseBuilder {
    */
   static success<T>(
     data: T,
-    messages: string[] = ['Operation completed successfully'],
+    messages: string[] = [MESSAGES.SUCCESS.OPERATION_COMPLETED],
     metadata?: ApiMetadataDto,
   ): StandardResponseDto<T> {
     return new StandardResponseDto(data, messages, true, metadata);
@@ -57,12 +58,12 @@ export class ResponseBuilder {
    */
   static validationError(
     validationErrors: ValidationFieldErrorDto[],
-    messages: string[] = ['Validation failed'],
+    messages: string[] = [MESSAGES.ERROR.VALIDATION_FAILED],
     metadata?: ApiMetadataDto,
   ): ValidationErrorResponseDto {
     const validationError: ValidationErrorDto = {
       code: 'VALIDATION_ERROR',
-      message: 'One or more validation errors occurred',
+      message: MESSAGES.ERROR.VALIDATION_ERROR_OCCURRED,
       validationErrors,
     };
 
@@ -77,7 +78,7 @@ export class ResponseBuilder {
     page: number,
     limit: number,
     total: number,
-    messages: string[] = ['Data retrieved successfully'],
+    messages: string[] = [MESSAGES.SUCCESS.DATA_RETRIEVED],
     metadata?: ApiMetadataDto,
   ): PaginatedResponseDto<T> {
     const totalPages = Math.ceil(total / limit);
@@ -112,13 +113,13 @@ export class ResponseBuilder {
    * Common error responses
    */
   static notFound(
-    resource: string = 'Resource',
+    resource: string = MESSAGES.ENTITIES.RESOURCE,
     id?: string,
     metadata?: ApiMetadataDto,
   ): ErrorResponseDto {
     const message = id
-      ? `${resource} with ID '${id}' not found`
-      : `${resource} not found`;
+      ? `${resource} com ID '${id}' ${MESSAGES.ERROR.NOT_FOUND}`
+      : `${resource} ${MESSAGES.ERROR.NOT_FOUND}`;
 
     return this.error(
       'NOT_FOUND',
@@ -130,21 +131,21 @@ export class ResponseBuilder {
   }
 
   static unauthorized(
-    message: string = 'Access denied. Authentication required.',
+    message: string = MESSAGES.ERROR.UNAUTHORIZED,
     metadata?: ApiMetadataDto,
   ): ErrorResponseDto {
     return this.error('UNAUTHORIZED', message, undefined, [message], metadata);
   }
 
   static forbidden(
-    message: string = 'Access denied. Insufficient permissions.',
+    message: string = MESSAGES.ERROR.FORBIDDEN,
     metadata?: ApiMetadataDto,
   ): ErrorResponseDto {
     return this.error('FORBIDDEN', message, undefined, [message], metadata);
   }
 
   static badRequest(
-    message: string = 'Invalid request data.',
+    message: string = MESSAGES.ERROR.BAD_REQUEST,
     details?: Record<string, unknown>,
     metadata?: ApiMetadataDto,
   ): ErrorResponseDto {
@@ -152,7 +153,7 @@ export class ResponseBuilder {
   }
 
   static internalServerError(
-    message: string = 'An internal server error occurred.',
+    message: string = MESSAGES.ERROR.INTERNAL_SERVER_ERROR,
     details?: Record<string, unknown>,
     metadata?: ApiMetadataDto,
   ): ErrorResponseDto {
@@ -181,14 +182,18 @@ export class ResponseBuilder {
       }),
     );
 
-    return this.validationError(fieldErrors, ['Validation failed'], metadata);
+    return this.validationError(
+      fieldErrors,
+      [MESSAGES.ERROR.VALIDATION_FAILED],
+      metadata,
+    );
   }
 
   /**
    * Create empty success response (for operations like delete)
    */
   static empty(
-    message: string = 'Operation completed successfully',
+    message: string = MESSAGES.SUCCESS.OPERATION_COMPLETED,
     metadata?: ApiMetadataDto,
   ): StandardResponseDto<null> {
     return new StandardResponseDto(null, [message], true, metadata);
@@ -199,7 +204,7 @@ export class ResponseBuilder {
    */
   static created<T>(
     data: T,
-    message: string = 'Resource created successfully',
+    message: string = `${MESSAGES.ENTITIES.RESOURCE} ${MESSAGES.SUCCESS.CREATED}`,
     metadata?: ApiMetadataDto,
   ): StandardResponseDto<T> {
     return new StandardResponseDto(data, [message], true, metadata);
@@ -210,7 +215,7 @@ export class ResponseBuilder {
    */
   static updated<T>(
     data: T,
-    message: string = 'Resource updated successfully',
+    message: string = `${MESSAGES.ENTITIES.RESOURCE} ${MESSAGES.SUCCESS.UPDATED}`,
     metadata?: ApiMetadataDto,
   ): StandardResponseDto<T> {
     return new StandardResponseDto(data, [message], true, metadata);
@@ -220,7 +225,7 @@ export class ResponseBuilder {
    * Create response for deleted resources
    */
   static deleted(
-    message: string = 'Resource deleted successfully',
+    message: string = `${MESSAGES.ENTITIES.RESOURCE} ${MESSAGES.SUCCESS.DELETED}`,
     metadata?: ApiMetadataDto,
   ): StandardResponseDto<null> {
     return new StandardResponseDto(null, [message], true, metadata);

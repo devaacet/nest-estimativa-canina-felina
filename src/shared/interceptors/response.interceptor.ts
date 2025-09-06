@@ -14,6 +14,7 @@ import { map } from 'rxjs/operators';
 import { Response } from 'express';
 import { ApiMetadataDto, StandardResponseDto } from '../dto';
 import { ResponseBuilder } from '../utils';
+import { MESSAGES } from '../constants/messages';
 
 @Injectable()
 export class ResponseInterceptor implements NestInterceptor {
@@ -103,7 +104,7 @@ export class ResponseInterceptor implements NestInterceptor {
     if (data === null || data === undefined) {
       return ResponseBuilder.success(
         null,
-        ['Operation completed successfully'],
+        [MESSAGES.SUCCESS.OPERATION_COMPLETED],
         metadata,
       );
     }
@@ -116,7 +117,7 @@ export class ResponseInterceptor implements NestInterceptor {
     // For regular data, wrap it in success response
     return ResponseBuilder.success(
       data,
-      ['Data retrieved successfully'],
+      [MESSAGES.SUCCESS.DATA_RETRIEVED],
       metadata,
     );
   }
@@ -153,7 +154,7 @@ export class ResponseInterceptor implements NestInterceptor {
 
     if (messages.length === 0) {
       messages.push(
-        data.success ? 'Operation completed successfully' : 'Operation failed',
+        data.success ? MESSAGES.SUCCESS.OPERATION_COMPLETED : MESSAGES.ERROR.OPERATION_FAILED,
       );
     }
 
