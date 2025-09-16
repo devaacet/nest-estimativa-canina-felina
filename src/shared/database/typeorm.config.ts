@@ -10,7 +10,7 @@ export const createTypeOrmConfig = (
   username: configService.get('DB_USER', 'postgres'),
   password: configService.get('DB_PASSWORD', 'postgres'),
   database: configService.get('DB_NAME', 'pet_research'),
-  synchronize: false,
+  synchronize: configService.get('NODE_ENV', 'development') === 'development',
   logging: configService.get('NODE_ENV', 'development') === 'development',
   entities: [
     __dirname + '/../../apps/**/domain/entities/*.entity{.ts,.js}',
@@ -18,9 +18,7 @@ export const createTypeOrmConfig = (
   ],
   migrations: [__dirname + '/migrations/*{.ts,.js}'],
   migrationsTableName: 'typeorm_migrations',
-  ssl: {
-    rejectUnauthorized: false,
-  },
+  ssl: false,
   retryAttempts: 10,
   retryDelay: 5000,
 });
