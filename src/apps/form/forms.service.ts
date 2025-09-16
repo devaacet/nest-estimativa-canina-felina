@@ -358,7 +358,7 @@ export class FormService {
 
   async remove(id: string): Promise<void> {
     const form = await this.findOne(id);
-    await this.formRepository.softRemove(form);
+    await this.formRepository.remove(form);
   }
 
   // Form Question Response methods
