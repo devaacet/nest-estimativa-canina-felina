@@ -48,6 +48,7 @@ async function bootstrap() {
         // VPS domain for production/development
         'https://srv964791.hstgr.cloud',
         'http://srv964791.hstgr.cloud',
+        'https://react-estimativa-canina-felina.vercel.app',
       ];
 
       // Check if origin is allowed
