@@ -70,8 +70,8 @@ export class Form {
   @Column({ name: 'address_street' })
   addressStreet: string;
 
-  @Column({ name: 'address_number' })
-  addressNumber: string;
+  @Column({ name: 'address_number', nullable: true })
+  addressNumber?: string;
 
   @Column({ name: 'address_complement', nullable: true })
   addressComplement?: string;

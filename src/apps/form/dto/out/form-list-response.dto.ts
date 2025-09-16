@@ -63,7 +63,7 @@ export class FormListResponseDto {
     example: '123',
     nullable: true,
   })
-  number: string | null;
+  number?: string | null;
 
   @ApiProperty({
     description: 'Data e hora de criação',
