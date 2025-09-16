@@ -3,66 +3,66 @@ import { AuditAction } from '../../../../shared/enums';
 
 export class AuditLogResponseDto {
   @ApiProperty({
-    description: 'Audit log ID',
+    description: 'ID do log de auditoria',
     example: 'uuid-string',
   })
   id: string;
 
   @ApiProperty({
-    description: 'User ID who performed the action',
+    description: 'ID do usuário que executou a ação',
     example: 'uuid-string',
   })
   user_id: string;
 
   @ApiProperty({
-    description: 'Action performed',
+    description: 'Ação executada',
     enum: AuditAction,
     example: AuditAction.CREATE,
   })
   action: AuditAction;
 
   @ApiProperty({
-    description: 'Table name affected',
+    description: 'Nome da tabela afetada',
     example: 'users',
   })
   table_name: string;
 
   @ApiProperty({
-    description: 'Record ID affected',
+    description: 'ID do registro afetado',
     example: 'uuid-string',
   })
   record_id: string;
 
   @ApiProperty({
-    description: 'Old values before the change',
-    example: { name: 'John', email: 'john@old.com' },
+    description: 'Valores antigos antes da mudança',
+    example: { name: 'João', email: 'joao@antigo.com' },
     required: false,
   })
   old_values?: Record<string, any>;
 
   @ApiProperty({
-    description: 'New values after the change',
-    example: { name: 'John Doe', email: 'john@new.com' },
+    description: 'Novos valores após a mudança',
+    example: { name: 'João Silva', email: 'joao@novo.com' },
     required: false,
   })
   new_values?: Record<string, any>;
 
   @ApiProperty({
-    description: 'IP address of the user',
+    description: 'Endereço IP do usuário',
     example: '192.168.1.1',
     required: false,
   })
   ip_address?: string;
 
   @ApiProperty({
-    description: 'User agent string',
+    description: 'String do user agent',
     example: 'Mozilla/5.0...',
     required: false,
   })
   user_agent?: string;
 
   @ApiProperty({
-    description: 'Additional metadata',
+    description: 'Metadados adicionais',
     example: { source: 'web', sessionId: 'abc123' },
     required: false,
   })

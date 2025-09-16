@@ -50,12 +50,14 @@ export enum EducationLevel {
   HIGH_SCHOOL = 'high_school',
   HIGHER = 'higher',
   TECHNICAL = 'technical',
+  NO_RESPONSE = 'no_response',
 }
 
 export enum HousingType {
   OWNED = 'owned',
   RENTED = 'rented',
   PROVIDED = 'provided',
+  NO_RESPONSE = 'no_response',
 }
 
 export enum IncomeRange {
@@ -63,6 +65,7 @@ export enum IncomeRange {
   TWO_TO_5K = '2k_5k',
   FIVE_TO_10K = '5k_10k',
   ABOVE_10K = 'above_10k',
+  NO_RESPONSE = 'no_response',
 }
 
 // Animal Related Enums
@@ -142,6 +145,7 @@ export enum VetFrequency {
   ONCE_YEAR = 'once_year',
   WHEN_SICK = 'when_sick',
   RARELY_NEVER = 'rarely_never',
+  NO_RESPONSE = 'no_response',
 }
 
 export enum CareType {

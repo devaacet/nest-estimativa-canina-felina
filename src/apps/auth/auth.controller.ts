@@ -25,7 +25,7 @@ import {
 import { MESSAGES } from 'src/shared/constants/messages';
 import { ConfigService } from '@nestjs/config';
 
-@ApiTags('Authentication')
+@ApiTags('Autenticação')
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -35,6 +35,16 @@ export class AuthController {
 
   @Public()
   @Post('login')
+  @ApiOperation({
+    summary: 'Login do usuário',
+    description:
+      'Autentica o usuário e define cookies HTTP-only com tokens de acesso e atualização',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Login realizado com sucesso',
+  })
+  @ApiResponse({ status: 401, description: 'Credenciais inválidas' })
   async login(@Body() credentials: LoginDto, @Response() res: Res) {
     const result = await this.authService.login(credentials);
 
@@ -69,6 +79,19 @@ export class AuthController {
   }
 
   @Post('refresh')
+  @ApiOperation({
+    summary: 'Atualizar tokens',
+    description:
+      'Atualiza o token de acesso usando o token de atualização do cookie',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Token atualizado com sucesso',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Token de atualização inválido ou ausente',
+  })
   async refresh(@Request() req: IRequest, @Response() res: Res) {
     const refreshToken = req.cookies.refresh_token;
 
@@ -91,16 +114,6 @@ export class AuthController {
       ),
     });
 
-    res.cookie('refresh_token', result.refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-      maxAge: this.configService.get<number>(
-        'JWT_REFRESH_EXPIRATION_IN_MS',
-        daysToMs(7),
-      ),
-    });
-
     return res.status(HttpStatus.OK).json({
       success: true,
       data: {
@@ -112,12 +125,13 @@ export class AuthController {
 
   @Post('logout')
   @ApiOperation({
-    summary: 'User logout',
-    description: 'Clears authentication cookies from the browser',
+    summary: 'Logout do usuário',
+    description: 'Remove os cookies de autenticação do navegador',
   })
   @ApiResponse({
     status: 200,
-    description: 'Logout successful. Authentication cookies are cleared.',
+    description:
+      'Logout realizado com sucesso. Cookies de autenticação removidos.',
     type: StandardResponseDto<null>,
   })
   @ApiClearsCookies()
@@ -137,10 +151,10 @@ export class AuthController {
 
   @Public()
   @Post('forgot-password')
-  @ApiOperation({ summary: 'Request password reset' })
+  @ApiOperation({ summary: 'Solicitar redefinição de senha' })
   @ApiResponse({
     status: 200,
-    description: 'Password reset email sent',
+    description: 'Email de redefinição de senha enviado',
     type: ForgotPasswordStandardResponseDto,
   })
   forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
@@ -158,13 +172,13 @@ export class AuthController {
 
   @Public()
   @Post('reset-password')
-  @ApiOperation({ summary: 'Reset password with token' })
+  @ApiOperation({ summary: 'Redefinir senha com token' })
   @ApiResponse({
     status: 200,
-    description: 'Password reset successfully',
+    description: 'Senha redefinida com sucesso',
     type: ResetPasswordStandardResponseDto,
   })
-  @ApiResponse({ status: 400, description: 'Invalid or expired token' })
+  @ApiResponse({ status: 400, description: 'Token inválido ou expirado' })
   async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
     await this.authService.resetPassword(
       resetPasswordDto.token,

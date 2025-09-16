@@ -103,7 +103,9 @@ export class AuthService {
       cityIds: user.cities.map((city) => city.id),
     };
 
-    const accessToken = this.jwtService.sign(payload);
+    const accessToken = this.jwtService.sign(payload, {
+      expiresIn: this.configService.get('JWT_ACCESS_EXPIRATION_IN_MS', '15m'),
+    });
 
     return accessToken;
   }
@@ -180,7 +182,7 @@ export class AuthService {
 
     try {
       const baseUrl = this.configService.get<string>(
-        'API_BASE_URL',
+        'FRONT_URL',
         'http://localhost:3001',
       );
       const resetUrl = `${baseUrl}/reset-password?token=${token}`;

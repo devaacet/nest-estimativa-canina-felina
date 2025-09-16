@@ -5,10 +5,7 @@ import {
   Get,
   Header,
   Param,
-  ParseIntPipe,
   ParseUUIDPipe,
-  Patch,
-  Post,
   Put,
   Query,
   Res,
@@ -17,36 +14,27 @@ import {
 import type { Response } from 'express';
 import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { FormService } from './forms.service';
-import {
-  CreateFormDto,
-  CreateFormResponseDto,
-  FormListResponseDto,
-  UpdateFormDto,
-} from './dto';
-import { CurrentUser } from '../../shared';
+import { CreateFormDto, FormListResponseDto } from './dto';
+import { CurrentUser, Roles, UserRole } from '../../shared';
 import type { CurrentUserDto, PaginatedDataDto } from '../../shared';
 import JwtAuthGuard from '../auth/guards/jwt-auth.guard';
 
-@ApiTags('Form')
+@ApiTags('Formulários')
 @Controller('form')
 @UseGuards(JwtAuthGuard)
 export class FormController {
   constructor(private readonly formService: FormService) {}
 
-  @Post()
-  create(@Body() createFormDto: CreateFormDto) {
-    return this.formService.create(createFormDto);
-  }
-
+  @Roles(UserRole.ADMINISTRATOR, UserRole.MANAGER, UserRole.RESEARCHER)
   @Put(':id')
   @ApiOperation({
-    summary: 'Create or update a form (idempotent operation)',
+    summary: 'Criar ou atualizar um formulário (operação idempotente)',
     description:
-      'Creates a new form or updates existing one. Used for auto-save and submit operations.',
+      'Cria um novo formulário ou atualiza um existente. Usado para operações de salvamento automático e envio.',
   })
   @ApiResponse({
     status: 200,
-    description: 'Form created or updated successfully',
+    description: 'Formulário criado ou atualizado com sucesso',
   })
   createOrUpdate(
     @Param('id', ParseUUIDPipe) id: string,
@@ -57,40 +45,44 @@ export class FormController {
 
   @Get()
   @ApiOperation({
-    summary: 'List forms with pagination and role-based access control',
+    summary:
+      'Listar formulários com paginação e controle de acesso baseado em função',
   })
   @ApiQuery({
     name: 'page',
     required: false,
     type: Number,
-    description: 'Page number (default: 1)',
+    description: 'Número da página (padrão: 1)',
   })
   @ApiQuery({
     name: 'limit',
     required: false,
     type: Number,
-    description: 'Items per page (default: 10)',
+    description: 'Itens por página (padrão: 10)',
   })
   @ApiQuery({
     name: 'cityIds',
     required: false,
     type: String,
     description:
-      'Comma-separated city IDs to filter (intersected with user accessible cities)',
+      'IDs de cidades separados por vírgula para filtrar (intersectados com cidades acessíveis ao usuário)',
   })
   @ApiQuery({
     name: 'startDate',
     required: false,
     type: String,
-    description: 'Start date for filtering forms (YYYY-MM-DD format)',
+    description: 'Data de início para filtrar formulários (formato YYYY-MM-DD)',
   })
   @ApiQuery({
     name: 'endDate',
     required: false,
     type: String,
-    description: 'End date for filtering forms (YYYY-MM-DD format)',
+    description: 'Data de fim para filtrar formulários (formato YYYY-MM-DD)',
   })
-  @ApiResponse({ status: 200, description: 'Forms retrieved successfully' })
+  @ApiResponse({
+    status: 200,
+    description: 'Formulários recuperados com sucesso',
+  })
   async findAll(
     @CurrentUser() user: CurrentUserDto,
     @Query('page') page?: number,
@@ -117,12 +109,11 @@ export class FormController {
     });
   }
 
-  @Get('drafts')
-  findDrafts(@Query('userId', ParseUUIDPipe) userId: string) {
-    return this.formService.findDraftsByUser(userId);
-  }
-
   @Get('date-range')
+  @ApiOperation({
+    summary: 'Buscar formulários por faixa de datas',
+    description: 'Recupera formulários dentro de uma faixa de datas específica',
+  })
   findByDateRange(
     @Query('startDate') startDate: string,
     @Query('endDate') endDate: string,
@@ -138,21 +129,25 @@ export class FormController {
     required: false,
     type: String,
     description:
-      'Comma-separated city IDs to filter (intersected with user accessible cities)',
+      'IDs de cidades separados por vírgula para filtrar (intersectados com cidades acessíveis ao usuário)',
   })
   @ApiQuery({
     name: 'startDate',
     required: false,
     type: String,
-    description: 'Start date for filtering forms (YYYY-MM-DD format)',
+    description: 'Data de início para filtrar formulários (formato YYYY-MM-DD)',
   })
   @ApiQuery({
     name: 'endDate',
     required: false,
     type: String,
-    description: 'End date for filtering forms (YYYY-MM-DD format)',
+    description: 'Data de fim para filtrar formulários (formato YYYY-MM-DD)',
   })
   @Get('dashboard')
+  @ApiOperation({
+    summary: 'Obter dados do dashboard',
+    description: 'Recupera estatísticas e dados agregados para o dashboard',
+  })
   getDashboard(
     @CurrentUser() user: CurrentUserDto,
     @Query('cityIds') cityIds?: string,
@@ -172,112 +167,51 @@ export class FormController {
   }
 
   @Get(':id')
+  @ApiOperation({
+    summary: 'Obter formulário por ID',
+    description: 'Recupera um formulário específico pelo seu ID',
+  })
   findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.formService.findOne(id);
   }
 
-  @Patch(':id')
-  update(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() updateFormDto: UpdateFormDto,
-  ) {
-    return this.formService.update(id, updateFormDto);
-  }
-
-  @Patch(':id/step')
-  updateStep(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body('step', ParseIntPipe) step: number,
-  ) {
-    return this.formService.updateStep(id, step);
-  }
-
-  @Patch(':id/complete')
-  markAsCompleted(@Param('id', ParseUUIDPipe) id: string) {
-    return this.formService.markAsCompleted(id);
-  }
-
-  @Patch(':id/submit')
-  markAsSubmitted(@Param('id', ParseUUIDPipe) id: string) {
-    return this.formService.markAsSubmitted(id);
-  }
-
-  @Post(':id/validate')
-  validateCompletion(@Param('id', ParseUUIDPipe) id: string) {
-    return this.formService.validateFormCompletion(id);
-  }
-
+  @Roles(UserRole.ADMINISTRATOR, UserRole.MANAGER)
   @Delete(':id')
+  @ApiOperation({
+    summary: 'Deletar formulário',
+    description: 'Remove um formulário do sistema',
+  })
   remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.formService.remove(id);
   }
 
-  // Form Question Response endpoints
-  @Post(':id/responses')
-  addQuestionResponse(
-    @Param('id', ParseUUIDPipe) formId: string,
-    @Body() createResponseDto: CreateFormResponseDto,
-  ) {
-    return this.formService.addQuestionResponse(formId, createResponseDto);
-  }
-
-  @Get(':id/responses')
-  getFormResponses(@Param('id', ParseUUIDPipe) formId: string) {
-    return this.formService.getFormResponses(formId);
-  }
-
-  @Patch(':id/responses/:questionId')
-  updateQuestionResponse(
-    @Param('id', ParseUUIDPipe) formId: string,
-    @Param('questionId', ParseUUIDPipe) questionId: string,
-    @Body('responseText') responseText: string,
-  ) {
-    return this.formService.updateQuestionResponse(
-      formId,
-      questionId,
-      responseText,
-    );
-  }
-
-  @Delete(':id/responses/:questionId')
-  deleteQuestionResponse(
-    @Param('id', ParseUUIDPipe) formId: string,
-    @Param('questionId', ParseUUIDPipe) questionId: string,
-  ) {
-    return this.formService.deleteQuestionResponse(formId, questionId);
-  }
-
-  @Get(':id/animal-count')
-  getAnimalCount(@Param('id', ParseUUIDPipe) formId: string) {
-    return this.formService.getAnimalCount(formId);
-  }
-
   @Get('export/excel')
   @ApiOperation({
-    summary: 'Export forms to Excel file with role-based access control',
+    summary:
+      'Exportar formulários para arquivo Excel com controle de acesso baseado em função',
   })
   @ApiQuery({
     name: 'cityIds',
     required: false,
     type: String,
     description:
-      'Comma-separated city IDs to filter (intersected with user accessible cities)',
+      'IDs de cidades separados por vírgula para filtrar (intersectados com cidades acessíveis ao usuário)',
   })
   @ApiQuery({
     name: 'startDate',
     required: false,
     type: String,
-    description: 'Start date for filtering forms (YYYY-MM-DD format)',
+    description: 'Data de início para filtrar formulários (formato YYYY-MM-DD)',
   })
   @ApiQuery({
     name: 'endDate',
     required: false,
     type: String,
-    description: 'End date for filtering forms (YYYY-MM-DD format)',
+    description: 'Data de fim para filtrar formulários (formato YYYY-MM-DD)',
   })
   @ApiResponse({
     status: 200,
-    description: 'Excel file generated and downloaded successfully',
+    description: 'Arquivo Excel gerado e baixado com sucesso',
     content: {
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': {
         schema: {

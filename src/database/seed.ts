@@ -21,15 +21,14 @@ async function adminUserSeed(userService: UserService) {
     },
     {
       cityIds: [],
-      email: 'admin@petresearch.com',
-      name: 'Administrador',
+      email: 'renan.ricoldi.frois@gmail.com',
+      name: 'Renan Ricoldi',
       role: UserRole.ADMINISTRATOR,
     },
   );
 
   console.log('Admin user created successfully!');
-  console.log('Email: admin@petresearch.com');
-  console.log('Password: admin123');
+  console.log('Email: renan.ricoldi.frois@gmail.com');
 }
 
 export default async function runSeeds(app: INestApplicationContext) {

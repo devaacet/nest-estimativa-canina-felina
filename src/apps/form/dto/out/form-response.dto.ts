@@ -10,25 +10,25 @@ import {
 
 export class FormResponseDto {
   @ApiProperty({
-    description: 'Form ID',
+    description: 'ID do formulário',
     example: 'uuid-string',
   })
   id: string;
 
   @ApiProperty({
-    description: 'User ID who filled the form',
+    description: 'ID do usuário que preencheu o formulário',
     example: 'uuid-string',
   })
   userId: string;
 
   @ApiProperty({
-    description: 'City ID where the form was conducted',
+    description: 'ID da cidade onde o formulário foi conduzido',
     example: 'uuid-string',
   })
   cityId: string;
 
   @ApiProperty({
-    description: 'Current step of the form (1-8)',
+    description: 'Etapa atual do formulário (1-8)',
     example: 3,
     minimum: 1,
     maximum: 8,
@@ -36,110 +36,110 @@ export class FormResponseDto {
   currentStep: number;
 
   @ApiProperty({
-    description: 'Whether the form is completed',
+    description: 'Se o formulário foi concluído',
     example: false,
   })
   isCompleted: boolean;
 
   @ApiProperty({
-    description: 'Whether the form is submitted',
+    description: 'Se o formulário foi enviado',
     example: false,
   })
   isSubmitted: boolean;
 
   @ApiProperty({
-    description: 'Name of the interviewer',
+    description: 'Nome do entrevistador',
     example: 'João Silva',
     required: false,
   })
   interviewerName?: string;
 
   @ApiProperty({
-    description: 'Interview date',
+    description: 'Data da entrevista',
     example: '2024-01-01',
     required: false,
   })
   interviewDate?: string;
 
   @ApiProperty({
-    description: 'Census sector code',
+    description: 'Código do setor censitário',
     example: '123456789',
     required: false,
   })
   censusSectorCode?: string;
 
   @ApiProperty({
-    description: 'Interview status',
+    description: 'Status da entrevista',
     enum: InterviewStatus,
     required: false,
   })
   interviewStatus?: InterviewStatus;
 
   @ApiProperty({
-    description: 'Street address',
+    description: 'Endereço da rua',
     example: 'Rua das Flores',
     required: false,
   })
   addressStreet?: string;
 
   @ApiProperty({
-    description: 'Address number',
+    description: 'Número do endereço',
     example: '123',
     required: false,
   })
   addressNumber?: string;
 
   @ApiProperty({
-    description: 'Address complement',
+    description: 'Complemento do endereço',
     example: 'Apt 45',
     required: false,
   })
   addressComplement?: string;
 
   @ApiProperty({
-    description: 'Residence type',
+    description: 'Tipo de residência',
     enum: ResidenceType,
     required: false,
   })
   residenceType?: ResidenceType;
 
   @ApiProperty({
-    description: 'Education level',
+    description: 'Nível de educação',
     enum: EducationLevel,
     required: false,
   })
   educationLevel?: EducationLevel;
 
   @ApiProperty({
-    description: 'Number of children',
+    description: 'Número de crianças',
     example: 2,
     required: false,
   })
   childrenCount?: number;
 
   @ApiProperty({
-    description: 'Number of teenagers',
+    description: 'Número de adolescentes',
     example: 1,
     required: false,
   })
   teensCount?: number;
 
   @ApiProperty({
-    description: 'Number of adults',
+    description: 'Número de adultos',
     example: 2,
     required: false,
   })
   adultsCount?: number;
 
   @ApiProperty({
-    description: 'Number of elderly',
+    description: 'Número de idosos',
     example: 0,
     required: false,
   })
   elderlyCount?: number;
 
   @ApiProperty({
-    description: 'Housing type',
+    description: 'Tipo de habitação',
     enum: HousingType,
     required: false,
   })

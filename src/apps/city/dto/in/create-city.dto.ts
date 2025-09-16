@@ -12,7 +12,7 @@ import { Type } from 'class-transformer';
 
 export class CreateCityQuestionDto {
   @ApiProperty({
-    description: 'Question text',
+    description: 'Texto da pergunta',
     example: 'Qual é a sua opinião sobre a castração de animais?',
   })
   @IsString({ message: 'Texto da pergunta deve ser uma string' })
@@ -20,7 +20,7 @@ export class CreateCityQuestionDto {
   questionText: string;
 
   @ApiProperty({
-    description: 'Question order',
+    description: 'Ordem da pergunta',
     example: 1,
   })
   @IsNumber({}, { message: 'Ordem da pergunta deve ser um número' })
@@ -28,7 +28,7 @@ export class CreateCityQuestionDto {
   questionOrder: number;
 
   @ApiProperty({
-    description: 'Whether this question is required',
+    description: 'Se esta pergunta é obrigatória',
     example: true,
     required: false,
   })
@@ -39,7 +39,7 @@ export class CreateCityQuestionDto {
 
 export class CreateCityDto {
   @ApiProperty({
-    description: 'City name',
+    description: 'Nome da cidade',
     example: 'São Paulo',
   })
   @IsString({ message: 'Nome da cidade deve ser uma string' })
@@ -47,7 +47,7 @@ export class CreateCityDto {
   name: string;
 
   @ApiProperty({
-    description: 'Research year',
+    description: 'Ano da pesquisa',
     example: 2024,
   })
   @IsNumber({}, { message: 'Ano deve ser um número' })
@@ -55,7 +55,7 @@ export class CreateCityDto {
   year: number;
 
   @ApiProperty({
-    description: 'City active status',
+    description: 'Status ativo da cidade',
     example: true,
     required: false,
   })
@@ -64,7 +64,7 @@ export class CreateCityDto {
   active?: boolean;
 
   @ApiProperty({
-    description: 'City questions',
+    description: 'Perguntas da cidade',
     type: [CreateCityQuestionDto],
     required: false,
   })

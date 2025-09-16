@@ -10,7 +10,7 @@ import {
 
 export class ApiMetadataDto {
   @ApiPropertyOptional({
-    description: 'Response timestamp',
+    description: 'Timestamp da resposta',
     example: '2024-08-16T10:30:00.000Z',
   })
   @IsOptional()
@@ -18,7 +18,7 @@ export class ApiMetadataDto {
   timestamp?: string;
 
   @ApiPropertyOptional({
-    description: 'Request tracking ID',
+    description: 'ID de rastreamento da requisição',
     example: 'req-12345-abcde',
   })
   @IsOptional()
@@ -26,7 +26,7 @@ export class ApiMetadataDto {
   requestId?: string;
 
   @ApiPropertyOptional({
-    description: 'API version',
+    description: 'Versão da API',
     example: 'v1.0.0',
   })
   @IsOptional()
@@ -34,7 +34,7 @@ export class ApiMetadataDto {
   version?: string;
 
   @ApiPropertyOptional({
-    description: 'Request execution time in milliseconds',
+    description: 'Tempo de execução da requisição em milissegundos',
     example: 150,
   })
   @IsOptional()
@@ -43,28 +43,28 @@ export class ApiMetadataDto {
 
 export class StandardResponseDto<T> {
   @ApiProperty({
-    description: 'Indicates if the operation was successful',
+    description: 'Indica se a operação foi bem-sucedida',
     example: true,
   })
   @IsBoolean()
   success: boolean;
 
   @ApiProperty({
-    description: 'Response data payload',
+    description: 'Dados de resposta',
   })
   data: T;
 
   @ApiProperty({
-    description: 'Array of messages related to the operation',
+    description: 'Array de mensagens relacionadas à operação',
     type: [String],
-    example: ['Operation completed successfully'],
+    example: ['Operação concluída com sucesso'],
   })
   @IsArray()
   @IsString({ each: true })
   messages: string[];
 
   @ApiPropertyOptional({
-    description: 'Additional metadata about the response',
+    description: 'Metadados adicionais sobre a resposta',
     type: ApiMetadataDto,
   })
   @IsOptional()
@@ -87,28 +87,28 @@ export class StandardResponseDto<T> {
 
 export class ApiErrorDto {
   @ApiProperty({
-    description: 'Error code identifier',
+    description: 'Identificador do código de erro',
     example: 'VALIDATION_ERROR',
   })
   @IsString()
   code: string;
 
   @ApiProperty({
-    description: 'Human-readable error message',
-    example: 'Validation failed for the provided data',
+    description: 'Mensagem de erro legível',
+    example: 'Validação falhou para os dados fornecidos',
   })
   @IsString()
   message: string;
 
   @ApiPropertyOptional({
-    description: 'Additional error details',
+    description: 'Detalhes adicionais do erro',
     example: { field: 'email', constraint: 'isEmail' },
   })
   @IsOptional()
   details?: Record<string, unknown>;
 
   @ApiPropertyOptional({
-    description: 'Stack trace (only in development)',
+    description: 'Stack trace (apenas em desenvolvimento)',
   })
   @IsOptional()
   @IsString()
@@ -117,28 +117,28 @@ export class ApiErrorDto {
 
 export class ValidationFieldErrorDto {
   @ApiProperty({
-    description: 'Field name that failed validation',
+    description: 'Nome do campo que falhou na validação',
     example: 'email',
   })
   @IsString()
   field: string;
 
   @ApiProperty({
-    description: 'Validation error message',
-    example: 'Email must be a valid email address',
+    description: 'Mensagem de erro de validação',
+    example: 'Email deve ter um formato válido',
   })
   @IsString()
   message: string;
 
   @ApiPropertyOptional({
-    description: 'Value that failed validation',
-    example: 'invalid-email',
+    description: 'Valor que falhou na validação',
+    example: 'email-inválido',
   })
   @IsOptional()
   value?: unknown;
 
   @ApiPropertyOptional({
-    description: 'List of validation constraints',
+    description: 'Lista de restrições de validação',
     type: [String],
     example: ['isEmail'],
   })
@@ -219,41 +219,41 @@ export class ValidationErrorResponseDto extends ErrorResponseDto {
 
 export class PaginationInfoDto {
   @ApiProperty({
-    description: 'Current page number',
+    description: 'Número da página atual',
     example: 1,
     minimum: 1,
   })
   page: number;
 
   @ApiProperty({
-    description: 'Number of items per page',
+    description: 'Número de itens por página',
     example: 10,
     minimum: 1,
   })
   limit: number;
 
   @ApiProperty({
-    description: 'Total number of items',
+    description: 'Número total de itens',
     example: 100,
     minimum: 0,
   })
   total: number;
 
   @ApiProperty({
-    description: 'Total number of pages',
+    description: 'Número total de páginas',
     example: 10,
     minimum: 0,
   })
   totalPages: number;
 
   @ApiProperty({
-    description: 'Whether there is a next page',
+    description: 'Se existe uma próxima página',
     example: true,
   })
   hasNext: boolean;
 
   @ApiProperty({
-    description: 'Whether there is a previous page',
+    description: 'Se existe uma página anterior',
     example: false,
   })
   hasPrevious: boolean;
@@ -261,13 +261,13 @@ export class PaginationInfoDto {
 
 export class PaginatedDataDto<T> {
   @ApiProperty({
-    description: 'Array of items for the current page',
+    description: 'Array de itens para a página atual',
     isArray: true,
   })
   items: T[];
 
   @ApiProperty({
-    description: 'Pagination information',
+    description: 'Informações de paginação',
     type: PaginationInfoDto,
   })
   @ValidateNested()
@@ -292,7 +292,7 @@ export class PaginatedResponseDto<T> extends StandardResponseDto<
   PaginatedDataDto<T>
 > {
   @ApiProperty({
-    description: 'Paginated data with items and pagination info',
+    description: 'Dados paginados com itens e informações de paginação',
   })
   declare data: PaginatedDataDto<T>;
 

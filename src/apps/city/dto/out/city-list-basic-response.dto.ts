@@ -2,19 +2,19 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class CityListBasicResponseDto {
   @ApiProperty({
-    description: 'City ID',
+    description: 'ID da cidade',
     example: 'uuid-string',
   })
   id: string;
 
   @ApiProperty({
-    description: 'City name',
+    description: 'Nome da cidade',
     example: 'São Paulo',
   })
   name: string;
 
   @ApiProperty({
-    description: 'Research year',
+    description: 'Ano da pesquisa',
     example: 2024,
   })
   year: number;

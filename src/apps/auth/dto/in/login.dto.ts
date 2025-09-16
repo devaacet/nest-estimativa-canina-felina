@@ -4,15 +4,15 @@ import { passwordValidation } from 'src/shared/constants';
 
 export class LoginDto {
   @ApiProperty({
-    description: 'User email address',
-    example: 'user@example.com',
+    description: 'Endereço de email do usuário',
+    example: 'usuario@exemplo.com',
   })
   @IsEmail({}, { message: 'Email deve ter um formato válido' })
   email: string;
 
   @ApiProperty({
-    description: 'User password',
-    example: 'mySecurePassword123',
+    description: 'Senha do usuário',
+    example: 'minhaSenhaSegura123',
     minLength: 8,
   })
   @IsString({ message: 'Senha deve ser uma string' })

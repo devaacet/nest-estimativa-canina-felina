@@ -3,14 +3,14 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateFormResponseDto {
   @ApiProperty({
-    description: 'Question ID this response belongs to',
+    description: 'ID da pergunta à qual esta resposta pertence',
     example: 'uuid-string',
   })
   @IsUUID()
   questionId: string;
 
   @ApiProperty({
-    description: 'Text response to the question',
+    description: 'Resposta em texto para a pergunta',
     example: 'Sim, considero muito importante',
     required: false,
   })

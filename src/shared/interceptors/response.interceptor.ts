@@ -154,7 +154,9 @@ export class ResponseInterceptor implements NestInterceptor {
 
     if (messages.length === 0) {
       messages.push(
-        data.success ? MESSAGES.SUCCESS.OPERATION_COMPLETED : MESSAGES.ERROR.OPERATION_FAILED,
+        data.success
+          ? MESSAGES.SUCCESS.OPERATION_COMPLETED
+          : MESSAGES.ERROR.OPERATION_FAILED,
       );
     }
 

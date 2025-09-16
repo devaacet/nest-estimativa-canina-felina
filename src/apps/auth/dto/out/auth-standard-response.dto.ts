@@ -9,7 +9,7 @@ import { LoginResponseDataDto } from './login.response.dto';
 export class LoginStandardResponseDto extends StandardResponseDto<LoginResponseDataDto> {
   @ApiProperty({
     description:
-      'Login response data containing user info. Authentication tokens are set as HTTP-only cookies.',
+      'Dados de resposta do login contendo informações do usuário. Tokens de autenticação são definidos como cookies HTTP-only.',
     type: LoginResponseDataDto,
   })
   declare data: LoginResponseDataDto;
@@ -24,7 +24,7 @@ export class LoginStandardResponseDto extends StandardResponseDto<LoginResponseD
 
 export class ForgotPasswordStandardResponseDto extends StandardResponseDto<ForgotPasswordResponseDto> {
   @ApiProperty({
-    description: 'Forgot password response data',
+    description: 'Dados de resposta para esqueceu a senha',
     type: ForgotPasswordResponseDto,
   })
   declare data: ForgotPasswordResponseDto;
@@ -39,7 +39,7 @@ export class ForgotPasswordStandardResponseDto extends StandardResponseDto<Forgo
 
 export class ResetPasswordStandardResponseDto extends StandardResponseDto<ResetPasswordResponseDto> {
   @ApiProperty({
-    description: 'Reset password response data',
+    description: 'Dados de resposta para redefinir senha',
     type: ResetPasswordResponseDto,
   })
   declare data: ResetPasswordResponseDto;
@@ -54,7 +54,7 @@ export class ResetPasswordStandardResponseDto extends StandardResponseDto<ResetP
 
 export class LogoutStandardResponseDto extends StandardResponseDto<null> {
   @ApiProperty({
-    description: 'Always null for logout',
+    description: 'Sempre null para logout',
     example: null,
   })
   declare data: null;
@@ -68,7 +68,7 @@ export class RefreshTokenStandardResponseDto extends StandardResponseDto<{
   accessToken: string;
 }> {
   @ApiProperty({
-    description: 'New access token',
+    description: 'Novo token de acesso',
     type: Object,
     example: {
       accessToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',

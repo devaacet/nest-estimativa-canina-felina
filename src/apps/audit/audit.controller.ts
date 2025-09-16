@@ -17,22 +17,49 @@ import {
 } from './dto/in';
 import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 
-@ApiTags('Audit')
+@ApiTags('Auditoria')
 @Controller('audit')
 export class AuditController {
   constructor(private readonly auditService: AuditService) {}
 
   // Audit Logs endpoints
   @Get('logs')
-  @ApiOperation({ summary: 'Get audit logs with filtering and pagination' })
-  @ApiQuery({ name: 'page', required: false, type: Number })
-  @ApiQuery({ name: 'limit', required: false, type: Number })
-  @ApiQuery({ name: 'userId', required: false, type: String })
-  @ApiQuery({ name: 'action', required: false, enum: AuditAction })
-  @ApiQuery({ name: 'tableName', required: false, type: String })
+  @ApiOperation({
+    summary: 'Obter logs de auditoria com filtragem e paginação',
+  })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    type: Number,
+    description: 'Número da página',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Limite de itens por página',
+  })
+  @ApiQuery({
+    name: 'userId',
+    required: false,
+    type: String,
+    description: 'ID do usuário para filtrar',
+  })
+  @ApiQuery({
+    name: 'action',
+    required: false,
+    enum: AuditAction,
+    description: 'Ação para filtrar',
+  })
+  @ApiQuery({
+    name: 'tableName',
+    required: false,
+    type: String,
+    description: 'Nome da tabela para filtrar',
+  })
   @ApiResponse({
     status: 200,
-    description: 'Audit logs retrieved successfully',
+    description: 'Logs de auditoria recuperados com sucesso',
   })
   async findAllAuditLogs(
     @Query('page') page?: number,
@@ -70,7 +97,7 @@ export class AuditController {
   }
 
   @Get('logs/:id')
-  @ApiOperation({ summary: 'Get audit log by ID' })
+  @ApiOperation({ summary: 'Obter log de auditoria por ID' })
   @ApiResponse({ status: 200, description: 'Audit log retrieved successfully' })
   @ApiResponse({ status: 404, description: 'Audit log not found' })
   async findAuditLogById(@Param('id') id: string) {
@@ -83,7 +110,7 @@ export class AuditController {
   }
 
   @Get('logs/user/:userId')
-  @ApiOperation({ summary: 'Get audit logs by user ID' })
+  @ApiOperation({ summary: 'Obter logs de auditoria por ID do usuário' })
   @ApiResponse({
     status: 200,
     description: 'User audit logs retrieved successfully',
@@ -98,7 +125,7 @@ export class AuditController {
   }
 
   @Get('logs/action/:action')
-  @ApiOperation({ summary: 'Get audit logs by action' })
+  @ApiOperation({ summary: 'Obter logs de auditoria por ação' })
   @ApiResponse({
     status: 200,
     description: 'Action audit logs retrieved successfully',
@@ -113,7 +140,7 @@ export class AuditController {
   }
 
   @Get('logs/table/:tableName')
-  @ApiOperation({ summary: 'Get audit logs by table name' })
+  @ApiOperation({ summary: 'Obter logs de auditoria por nome da tabela' })
   @ApiResponse({
     status: 200,
     description: 'Table audit logs retrieved successfully',
@@ -128,7 +155,9 @@ export class AuditController {
   }
 
   @Get('logs/record/:tableName/:recordId')
-  @ApiOperation({ summary: 'Get audit logs for a specific record' })
+  @ApiOperation({
+    summary: 'Obter logs de auditoria para um registro específico',
+  })
   @ApiResponse({
     status: 200,
     description: 'Record audit logs retrieved successfully',
@@ -149,7 +178,7 @@ export class AuditController {
   }
 
   @Get('logs/recent/:days')
-  @ApiOperation({ summary: 'Get recent audit logs' })
+  @ApiOperation({ summary: 'Obter logs de auditoria recentes' })
   @ApiResponse({
     status: 200,
     description: 'Recent audit logs retrieved successfully',
@@ -164,7 +193,7 @@ export class AuditController {
   }
 
   @Get('logs/search/:term')
-  @ApiOperation({ summary: 'Search audit logs' })
+  @ApiOperation({ summary: 'Buscar logs de auditoria' })
   @ApiResponse({
     status: 200,
     description: 'Search results retrieved successfully',
@@ -179,7 +208,7 @@ export class AuditController {
   }
 
   @Get('logs/statistics/overview')
-  @ApiOperation({ summary: 'Get audit logs statistics' })
+  @ApiOperation({ summary: 'Obter estatísticas de logs de auditoria' })
   @ApiResponse({
     status: 200,
     description: 'Audit statistics retrieved successfully',
@@ -194,7 +223,7 @@ export class AuditController {
   }
 
   @Delete('logs/cleanup/:days')
-  @ApiOperation({ summary: 'Clean up old audit logs' })
+  @ApiOperation({ summary: 'Limpar logs de auditoria antigos' })
   @ApiResponse({
     status: 200,
     description: 'Audit logs cleaned up successfully',
@@ -213,7 +242,7 @@ export class AuditController {
 
   // Export Requests endpoints
   @Get('exports')
-  @ApiOperation({ summary: 'Get all export requests' })
+  @ApiOperation({ summary: 'Obter todas as solicitações de exportação' })
   @ApiResponse({
     status: 200,
     description: 'Export requests retrieved successfully',
@@ -228,7 +257,7 @@ export class AuditController {
   }
 
   @Get('exports/:id')
-  @ApiOperation({ summary: 'Get export request by ID' })
+  @ApiOperation({ summary: 'Obter solicitação de exportação por ID' })
   @ApiResponse({
     status: 200,
     description: 'Export request retrieved successfully',
@@ -244,7 +273,9 @@ export class AuditController {
   }
 
   @Get('exports/user/:userId')
-  @ApiOperation({ summary: 'Get export requests by user ID' })
+  @ApiOperation({
+    summary: 'Obter solicitações de exportação por ID do usuário',
+  })
   @ApiResponse({
     status: 200,
     description: 'User export requests retrieved successfully',
@@ -259,7 +290,7 @@ export class AuditController {
   }
 
   @Get('exports/status/:status')
-  @ApiOperation({ summary: 'Get export requests by status' })
+  @ApiOperation({ summary: 'Obter solicitações de exportação por status' })
   @ApiResponse({
     status: 200,
     description: 'Export requests by status retrieved successfully',
@@ -274,7 +305,7 @@ export class AuditController {
   }
 
   @Get('exports/filter/pending')
-  @ApiOperation({ summary: 'Get pending export requests' })
+  @ApiOperation({ summary: 'Obter solicitações de exportação pendentes' })
   @ApiResponse({
     status: 200,
     description: 'Pending export requests retrieved successfully',
@@ -289,7 +320,9 @@ export class AuditController {
   }
 
   @Get('exports/filter/processing')
-  @ApiOperation({ summary: 'Get processing export requests' })
+  @ApiOperation({
+    summary: 'Obter solicitações de exportação em processamento',
+  })
   @ApiResponse({
     status: 200,
     description: 'Processing export requests retrieved successfully',
@@ -304,7 +337,7 @@ export class AuditController {
   }
 
   @Post('exports')
-  @ApiOperation({ summary: 'Create export request' })
+  @ApiOperation({ summary: 'Criar solicitação de exportação' })
   @ApiResponse({
     status: 201,
     description: 'Export request created successfully',
@@ -319,7 +352,7 @@ export class AuditController {
   }
 
   @Put('exports/:id')
-  @ApiOperation({ summary: 'Update export request' })
+  @ApiOperation({ summary: 'Atualizar solicitação de exportação' })
   @ApiResponse({
     status: 200,
     description: 'Export request updated successfully',
@@ -341,7 +374,7 @@ export class AuditController {
   }
 
   @Put('exports/:id/status')
-  @ApiOperation({ summary: 'Update export request status' })
+  @ApiOperation({ summary: 'Atualizar status da solicitação de exportação' })
   @ApiResponse({
     status: 200,
     description: 'Export request status updated successfully',
@@ -363,7 +396,7 @@ export class AuditController {
   }
 
   @Put('exports/:id/downloaded')
-  @ApiOperation({ summary: 'Mark export request as downloaded' })
+  @ApiOperation({ summary: 'Marcar solicitação de exportação como baixada' })
   @ApiResponse({
     status: 200,
     description: 'Export request marked as downloaded successfully',
@@ -378,7 +411,7 @@ export class AuditController {
   }
 
   @Delete('exports/:id')
-  @ApiOperation({ summary: 'Delete export request' })
+  @ApiOperation({ summary: 'Deletar solicitação de exportação' })
   @ApiResponse({
     status: 200,
     description: 'Export request deleted successfully',
@@ -393,7 +426,7 @@ export class AuditController {
   }
 
   @Delete('exports/cleanup/expired')
-  @ApiOperation({ summary: 'Clean up expired export requests' })
+  @ApiOperation({ summary: 'Limpar solicitações de exportação expiradas' })
   @ApiResponse({
     status: 200,
     description: 'Expired export requests cleaned up successfully',
@@ -411,7 +444,7 @@ export class AuditController {
   }
 
   @Get('exports/statistics/overview')
-  @ApiOperation({ summary: 'Get export requests statistics' })
+  @ApiOperation({ summary: 'Obter estatísticas de solicitações de exportação' })
   @ApiResponse({
     status: 200,
     description: 'Export statistics retrieved successfully',
@@ -426,7 +459,9 @@ export class AuditController {
   }
 
   @Get('exports/user/:userId/recent/:days')
-  @ApiOperation({ summary: 'Get user recent export requests' })
+  @ApiOperation({
+    summary: 'Obter solicitações de exportação recentes do usuário',
+  })
   @ApiResponse({
     status: 200,
     description: 'Recent user export requests retrieved successfully',
@@ -448,7 +483,7 @@ export class AuditController {
 
   // Dashboard statistics
   @Get('dashboard/statistics')
-  @ApiOperation({ summary: 'Get dashboard statistics' })
+  @ApiOperation({ summary: 'Obter estatísticas do dashboard' })
   @ApiResponse({
     status: 200,
     description: 'Dashboard statistics retrieved successfully',

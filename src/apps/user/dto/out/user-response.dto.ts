@@ -3,19 +3,19 @@ import { UserRole } from '../../../../shared/enums';
 
 export class UserResponseDto {
   @ApiProperty({
-    description: 'User unique identifier',
+    description: 'Identificador único do usuário',
     example: '123e4567-e89b-12d3-a456-426614174000',
   })
   id: string;
 
   @ApiProperty({
-    description: 'User email address',
-    example: 'user@example.com',
+    description: 'Endereço de email do usuário',
+    example: 'usuario@exemplo.com',
   })
   email: string;
 
   @ApiProperty({
-    description: 'User full name',
+    description: 'Nome completo do usuário',
     example: 'João Silva',
   })
   name: string;
@@ -24,39 +24,40 @@ export class UserResponseDto {
   phone?: string;
 
   @ApiProperty({
-    description: 'User role in the system',
+    description: 'Função do usuário no sistema',
     enum: UserRole,
     example: UserRole.RESEARCHER,
   })
   role: UserRole;
 
   @ApiProperty({
-    description: 'User institution',
+    description: 'Instituição do usuário',
     example: 'Universidade Federal de São Paulo',
     nullable: true,
   })
   institution?: string;
 
   @ApiProperty({
-    description: 'Whether the user is active',
+    description: 'Se o usuário está ativo',
     example: true,
   })
   active: boolean;
 
   @ApiProperty({
-    description: 'Whether the user email is verified',
+    description: 'Se o email do usuário foi verificado',
     example: false,
   })
   emailVerified: boolean;
 
   @ApiProperty({
-    description: 'Last login timestamp',
+    description: 'Data e hora do último login',
     example: '2024-01-15T10:30:00Z',
     nullable: true,
   })
   lastLoginAt?: Date;
 
   @ApiProperty({
+    description: 'Nomes das cidades que o usuário tem acesso',
     nullable: true,
   })
   cityNames?: string[];

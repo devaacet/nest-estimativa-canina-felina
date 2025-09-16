@@ -22,7 +22,7 @@ import {
   CityResponseDto,
 } from 'src/apps/city/dto/out';
 
-@ApiTags('City')
+@ApiTags('Cidades')
 @Controller('city')
 @UseGuards(JwtAuthGuard)
 export class CityController {
@@ -31,12 +31,37 @@ export class CityController {
   @Get()
   @Roles(UserRole.ADMINISTRATOR)
   @ApiOperation({ summary: 'Listar todas as cidades' })
-  @ApiQuery({ name: 'page', required: false, type: Number })
-  @ApiQuery({ name: 'limit', required: false, type: Number })
-  @ApiQuery({ name: 'search', required: false, type: String })
-  @ApiQuery({ name: 'year', required: false, type: Number })
-  @ApiQuery({ name: 'active', required: false, type: Boolean })
-  @ApiResponse({ status: 200, description: 'Cities retrieved successfully' })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    type: Number,
+    description: 'Número da página',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Limite de itens por página',
+  })
+  @ApiQuery({
+    name: 'search',
+    required: false,
+    type: String,
+    description: 'Termo de busca por nome da cidade',
+  })
+  @ApiQuery({
+    name: 'year',
+    required: false,
+    type: Number,
+    description: 'Filtrar por ano da pesquisa',
+  })
+  @ApiQuery({
+    name: 'active',
+    required: false,
+    type: Boolean,
+    description: 'Filtrar por status ativo',
+  })
+  @ApiResponse({ status: 200, description: 'Cidades recuperadas com sucesso' })
   async findAll(
     @Query('page') page?: number,
     @Query('limit') limit?: number,
@@ -57,11 +82,12 @@ export class CityController {
   @ApiOperation({ summary: 'Listar cidades acessíveis ao usuário atual' })
   @ApiResponse({
     status: 200,
-    description: 'User accessible cities retrieved successfully',
+    description: 'Cidades acessíveis ao usuário recuperadas com sucesso',
   })
   @ApiQuery({
     name: 'search',
     required: false,
+    description: 'Termo de busca por nome da cidade',
   })
   async findBasicCities(
     @CurrentUser() user: CurrentUserDto,
@@ -74,9 +100,9 @@ export class CityController {
 
   @Get(':id')
   @Roles(UserRole.ADMINISTRATOR)
-  @ApiOperation({ summary: 'Get city by ID' })
-  @ApiResponse({ status: 200, description: 'City retrieved successfully' })
-  @ApiResponse({ status: 404, description: 'City not found' })
+  @ApiOperation({ summary: 'Obter cidade por ID' })
+  @ApiResponse({ status: 200, description: 'Cidade recuperada com sucesso' })
+  @ApiResponse({ status: 404, description: 'Cidade não encontrada' })
   async findCityById(@Param('id') id: string): Promise<CityDetailsResponseDto> {
     const city = await this.cityService.getDetailsById(id);
 
@@ -85,9 +111,9 @@ export class CityController {
 
   @Post()
   @Roles(UserRole.ADMINISTRATOR)
-  @ApiOperation({ summary: 'Create new city' })
-  @ApiResponse({ status: 201, description: 'City created successfully' })
-  @ApiResponse({ status: 400, description: 'Invalid data' })
+  @ApiOperation({ summary: 'Criar nova cidade' })
+  @ApiResponse({ status: 201, description: 'Cidade criada com sucesso' })
+  @ApiResponse({ status: 400, description: 'Dados inválidos' })
   async createCity(
     @CurrentUser() user: CurrentUserDto,
     @Body() cityData: CreateCityDto,
@@ -102,9 +128,9 @@ export class CityController {
 
   @Put(':id')
   @Roles(UserRole.ADMINISTRATOR)
-  @ApiOperation({ summary: 'Update city' })
-  @ApiResponse({ status: 200, description: 'City updated successfully' })
-  @ApiResponse({ status: 404, description: 'City not found' })
+  @ApiOperation({ summary: 'Atualizar cidade' })
+  @ApiResponse({ status: 200, description: 'Cidade atualizada com sucesso' })
+  @ApiResponse({ status: 404, description: 'Cidade não encontrada' })
   async updateCity(
     @CurrentUser() user: CurrentUserDto,
     @Param('id') id: string,
@@ -120,9 +146,9 @@ export class CityController {
 
   @Delete(':id')
   @Roles(UserRole.ADMINISTRATOR)
-  @ApiOperation({ summary: 'Delete city' })
-  @ApiResponse({ status: 200, description: 'City deleted successfully' })
-  @ApiResponse({ status: 404, description: 'City not found' })
+  @ApiOperation({ summary: 'Deletar cidade' })
+  @ApiResponse({ status: 200, description: 'Cidade deletada com sucesso' })
+  @ApiResponse({ status: 404, description: 'Cidade não encontrada' })
   async deleteCity(
     @CurrentUser() user: CurrentUserDto,
     @Param('id') id: string,
@@ -137,8 +163,11 @@ export class CityController {
 
   @Put(':id/toggle-status')
   @Roles(UserRole.ADMINISTRATOR)
-  @ApiOperation({ summary: 'Toggle city active status' })
-  @ApiResponse({ status: 200, description: 'City status updated successfully' })
+  @ApiOperation({ summary: 'Alternar status ativo da cidade' })
+  @ApiResponse({
+    status: 200,
+    description: 'Status da cidade atualizado com sucesso',
+  })
   async toggleCityStatus(@Param('id') id: string) {
     await this.cityService.toggleCityStatus(id);
     return {
@@ -152,8 +181,11 @@ export class CityController {
 
   // City Questions endpoints
   @Get(':cityId/questions')
-  @ApiOperation({ summary: 'Get all questions for a city' })
-  @ApiResponse({ status: 200, description: 'Questions retrieved successfully' })
+  @ApiOperation({ summary: 'Obter todas as perguntas de uma cidade' })
+  @ApiResponse({
+    status: 200,
+    description: 'Perguntas recuperadas com sucesso',
+  })
   async getCityQuestions(@Param('cityId') cityId: string) {
     const questions = await this.cityService.findQuestionsByCityId(cityId);
 

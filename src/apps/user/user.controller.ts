@@ -11,7 +11,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { UserService } from './user.service';
-import { ApiOperation, ApiQuery } from '@nestjs/swagger';
+import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { RegisterUserDto, UpdateUserDto } from './dto/in';
 import { CurrentUser, Roles, UserRole } from 'src/shared';
 import { MESSAGES } from 'src/shared/constants/messages';
@@ -19,6 +19,7 @@ import type { CurrentUserDto, PaginatedDataDto } from 'src/shared';
 import { UserResponseDto } from 'src/apps/user/dto/out';
 import JwtAuthGuard from 'src/apps/auth/guards/jwt-auth.guard';
 
+@ApiTags('Usuários')
 @Controller('user')
 @UseGuards(JwtAuthGuard)
 export class UserController {
@@ -27,11 +28,36 @@ export class UserController {
   @Get()
   @Roles(UserRole.ADMINISTRATOR, UserRole.MANAGER)
   @ApiOperation({ summary: 'Listar todos os usuários' })
-  @ApiQuery({ name: 'page', required: false, type: Number })
-  @ApiQuery({ name: 'limit', required: false, type: Number })
-  @ApiQuery({ name: 'search', required: false, type: String })
-  @ApiQuery({ name: 'role', required: false, enum: UserRole })
-  @ApiQuery({ name: 'active', required: false, type: Boolean })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    type: Number,
+    description: 'Número da página',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Limite de itens por página',
+  })
+  @ApiQuery({
+    name: 'search',
+    required: false,
+    type: String,
+    description: 'Termo de busca por nome ou email',
+  })
+  @ApiQuery({
+    name: 'role',
+    required: false,
+    enum: UserRole,
+    description: 'Filtrar por função do usuário',
+  })
+  @ApiQuery({
+    name: 'active',
+    required: false,
+    type: Boolean,
+    description: 'Filtrar por status ativo',
+  })
   async findAll(
     @CurrentUser() user: CurrentUserDto,
     @Query('page') page?: number,

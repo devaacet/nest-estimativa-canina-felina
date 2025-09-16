@@ -65,6 +65,7 @@ export class FormService {
           previousAnimals,
           puppiesKittens,
           animalAbsence,
+          cityQuestions,
           ...formData
         } = createFormDto;
 
@@ -135,6 +136,22 @@ export class FormService {
           });
           await manager.save(AnimalAbsenceForm, absenceEntity);
         }
+
+        // Handle city question responses
+        if (cityQuestions) {
+          // Remove existing responses
+          await manager.delete(FormQuestionResponse, { formId: id });
+
+          // Create new responses
+          for (const response of cityQuestions) {
+            const questionResponse = manager.create(FormQuestionResponse, {
+              formId: id,
+              questionId: response.questionId,
+              responseText: response.responseText,
+            });
+            await manager.save(FormQuestionResponse, questionResponse);
+          }
+        }
       } else {
         // Create new form
         const {
@@ -142,6 +159,7 @@ export class FormService {
           previousAnimals,
           puppiesKittens,
           animalAbsence,
+          cityQuestions,
           ...formData
         } = createFormDto;
 
@@ -200,6 +218,18 @@ export class FormService {
             formId: id,
           });
           await manager.save(AnimalAbsenceForm, absenceEntity);
+        }
+
+        // Handle city question responses for new form
+        if (cityQuestions) {
+          for (const response of cityQuestions) {
+            const questionResponse = manager.create(FormQuestionResponse, {
+              formId: id,
+              questionId: response.questionId,
+              responseText: response.responseText,
+            });
+            await manager.save(FormQuestionResponse, questionResponse);
+          }
         }
       }
 
@@ -328,7 +358,7 @@ export class FormService {
 
   async remove(id: string): Promise<void> {
     const form = await this.findOne(id);
-    await this.formRepository.remove(form);
+    await this.formRepository.softRemove(form);
   }
 
   // Form Question Response methods

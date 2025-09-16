@@ -25,7 +25,7 @@ export enum ExportType {
 
 export class CreateExportRequestDto {
   @ApiProperty({
-    description: 'User ID who requested the export',
+    description: 'ID do usuário que solicitou a exportação',
     example: 'uuid-string',
   })
   @IsUUID(4, { message: 'User ID deve ser um UUID válido' })
@@ -33,7 +33,7 @@ export class CreateExportRequestDto {
   user_id: string;
 
   @ApiProperty({
-    description: 'Type of export',
+    description: 'Tipo de exportação',
     enum: ExportType,
     example: ExportType.FORMS,
   })
@@ -42,7 +42,7 @@ export class CreateExportRequestDto {
   export_type: ExportType;
 
   @ApiProperty({
-    description: 'Export format',
+    description: 'Formato de exportação',
     enum: ExportFormat,
     example: ExportFormat.CSV,
   })
@@ -51,7 +51,7 @@ export class CreateExportRequestDto {
   format: ExportFormat;
 
   @ApiProperty({
-    description: 'Export description or title',
+    description: 'Descrição ou título da exportação',
     example: 'Formulários de pesquisa - Janeiro 2024',
   })
   @IsString({ message: 'Descrição deve ser uma string' })
@@ -59,7 +59,7 @@ export class CreateExportRequestDto {
   description: string;
 
   @ApiProperty({
-    description: 'Filters and parameters for the export',
+    description: 'Filtros e parâmetros para a exportação',
     example: {
       dateRange: { start: '2024-01-01', end: '2024-01-31' },
       cityId: 'uuid-string',
@@ -72,8 +72,8 @@ export class CreateExportRequestDto {
   parameters?: Record<string, any>;
 
   @ApiProperty({
-    description: 'Additional metadata',
-    example: { requestedBy: 'Research Team', department: 'Biology' },
+    description: 'Metadados adicionais',
+    example: { requestedBy: 'Equipe de Pesquisa', department: 'Biologia' },
     required: false,
   })
   @IsObject({ message: 'Metadados devem ser um objeto' })
@@ -81,7 +81,7 @@ export class CreateExportRequestDto {
   metadata?: Record<string, any>;
 
   @ApiProperty({
-    description: 'Priority level',
+    description: 'Nível de prioridade',
     example: 'normal',
     required: false,
   })

@@ -31,10 +31,11 @@ import { CreateCurrentAnimalDto } from '../create-current-animal.dto';
 import { CreatePreviousAnimalDto } from '../create-previous-animal.dto';
 import { CreatePuppiesKittensDto } from '../create-puppies-kittens.dto';
 import { CreateAnimalAbsenceDto } from '../create-animal-absence.dto';
+import { CreateFormResponseDto } from './create-form-response.dto';
 
 export class CreateFormDto {
   @ApiProperty({
-    description: 'Optional form ID for update operations',
+    description: 'ID opcional do formulário para operações de atualização',
     example: 'uuid-string',
     required: false,
   })
@@ -43,21 +44,21 @@ export class CreateFormDto {
   id?: string;
 
   @ApiProperty({
-    description: 'User ID who is filling the form',
+    description: 'ID do usuário que está preenchendo o formulário',
     example: 'uuid-string',
   })
   @IsUUID()
   userId: string;
 
   @ApiProperty({
-    description: 'City ID where the form is being conducted',
+    description: 'ID da cidade onde o formulário está sendo conduzido',
     example: 'uuid-string',
   })
   @IsUUID()
   cityId: string;
 
   @ApiProperty({
-    description: 'Status of the form',
+    description: 'Status do formulário',
     enum: FormStatus,
     example: FormStatus.DRAFT,
   })
@@ -67,7 +68,7 @@ export class CreateFormDto {
 
   // Step 1: Initial Information
   @ApiProperty({
-    description: 'Name of the interviewer',
+    description: 'Nome do entrevistador',
     example: 'João Silva',
     required: false,
   })
@@ -187,7 +188,7 @@ export class CreateFormDto {
 
   // Step 4: Current Animals
   @ApiProperty({
-    description: 'Array of current animals in the household',
+    description: 'Array de animais atuais na residência',
     type: [CreateCurrentAnimalDto],
     required: false,
   })
@@ -199,7 +200,7 @@ export class CreateFormDto {
 
   // Step 5: Previous Animals
   @ApiProperty({
-    description: 'Array of previous animals that the household had',
+    description: 'Array de animais anteriores que a residência teve',
     type: [CreatePreviousAnimalDto],
     required: false,
   })
@@ -211,7 +212,7 @@ export class CreateFormDto {
 
   // Step 6: Puppies and Kittens
   @ApiProperty({
-    description: 'Puppies/kittens information',
+    description: 'Informações de filhotes',
     type: CreatePuppiesKittensDto,
     required: false,
   })
@@ -222,7 +223,7 @@ export class CreateFormDto {
 
   // Step 7: Animal Absence
   @ApiProperty({
-    description: 'Animal absence information',
+    description: 'Informações sobre ausência de animais',
     type: CreateAnimalAbsenceDto,
     required: false,
   })
@@ -230,4 +231,16 @@ export class CreateFormDto {
   @ValidateNested()
   @Type(() => CreateAnimalAbsenceDto)
   animalAbsence?: CreateAnimalAbsenceDto;
+
+  // City Questions Responses
+  @ApiProperty({
+    description: 'Array de respostas para perguntas específicas da cidade',
+    type: [CreateFormResponseDto],
+    required: false,
+  })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateFormResponseDto)
+  cityQuestions?: CreateFormResponseDto[];
 }

@@ -27,7 +27,8 @@ export class EmailService {
 
       await this.mailerService.sendMail({
         to: data.email,
-        subject: 'Bem-vindo à Plataforma Pet Research',
+        subject:
+          'Boas vindas à plataforma de Estimativa de população Canina e Felina',
         template: 'welcome',
         context: {
           name: data.name,

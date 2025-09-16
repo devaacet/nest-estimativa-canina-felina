@@ -152,7 +152,7 @@ export class UserService {
 
     try {
       const loginUrl = this.configService.get<string>(
-        'API_BASE_URL',
+        'FRONT_URL',
         'http://localhost:3001',
       );
 

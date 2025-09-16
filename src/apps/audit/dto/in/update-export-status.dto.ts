@@ -3,7 +3,7 @@ import { IsNotEmpty, IsObject, IsOptional, IsString } from 'class-validator';
 
 export class UpdateExportStatusDto {
   @ApiProperty({
-    description: 'New status of the export request',
+    description: 'Novo status da solicitação de exportação',
     example: 'completed',
   })
   @IsString({ message: 'Status deve ser uma string' })
@@ -11,7 +11,7 @@ export class UpdateExportStatusDto {
   status: string;
 
   @ApiProperty({
-    description: 'Additional metadata for the status update',
+    description: 'Metadados adicionais para a atualização do status',
     example: {
       fileSize: 1024000,
       recordsExported: 500,

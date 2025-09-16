@@ -12,7 +12,7 @@ import { AuditAction } from '../../../../shared/enums';
 
 export class AuditFiltersDto {
   @ApiProperty({
-    description: 'Page number for pagination',
+    description: 'Número da página para paginação',
     example: 1,
     required: false,
   })
@@ -22,7 +22,7 @@ export class AuditFiltersDto {
   page?: number;
 
   @ApiProperty({
-    description: 'Number of items per page',
+    description: 'Número de itens por página',
     example: 50,
     required: false,
   })
@@ -32,7 +32,7 @@ export class AuditFiltersDto {
   limit?: number;
 
   @ApiProperty({
-    description: 'User ID to filter by',
+    description: 'ID do usuário para filtrar',
     example: 'uuid-string',
     required: false,
   })
@@ -41,7 +41,7 @@ export class AuditFiltersDto {
   userId?: string;
 
   @ApiProperty({
-    description: 'Action type to filter by',
+    description: 'Tipo de ação para filtrar',
     enum: AuditAction,
     required: false,
   })
@@ -50,7 +50,7 @@ export class AuditFiltersDto {
   action?: AuditAction;
 
   @ApiProperty({
-    description: 'Table name to filter by',
+    description: 'Nome da tabela para filtrar',
     example: 'users',
     required: false,
   })
@@ -59,7 +59,7 @@ export class AuditFiltersDto {
   tableName?: string;
 
   @ApiProperty({
-    description: 'Start date for filtering',
+    description: 'Data de início para filtrar',
     example: '2024-01-01',
     required: false,
   })
@@ -68,7 +68,7 @@ export class AuditFiltersDto {
   startDate?: string;
 
   @ApiProperty({
-    description: 'End date for filtering',
+    description: 'Data de fim para filtrar',
     example: '2024-01-31',
     required: false,
   })
