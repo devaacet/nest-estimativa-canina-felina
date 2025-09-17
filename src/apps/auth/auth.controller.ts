@@ -78,6 +78,7 @@ export class AuthController {
     });
   }
 
+  @Public()
   @Post('refresh')
   @ApiOperation({
     summary: 'Atualizar tokens',
